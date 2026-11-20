@@ -1,4 +1,4 @@
-name: iOS Release .ipa
+name: iOS Build for Sideloadly (unsigned .ipa)
 
 on:
   push:
@@ -32,29 +32,28 @@ jobs:
           cd iosApp
           xcodegen generate
 
-      - name: Build archive and export .ipa
-        env:
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          TEAM_ID: ${{ secrets.TEAM_ID }}
-          CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
-          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
+      - name: Build unsigned .app (без подписи)
         run: |
           cd iosApp
-          xcodebuild -scheme iosApp -configuration Release -sdk iphoneos \
-            -archivePath ./build/iosApp.xcarchive \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE" \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            archive
+          xcodebuild -scheme iosApp -configuration Debug -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
 
-          xcodebuild -exportArchive \
-            -archivePath ./build/iosApp.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath ./build/ipa
+      - name: Package unsigned .app into .ipa
+        run: |
+          cd iosApp
+          APP_PATH="./build/Build/Products/Debug-iphoneos/iosApp.app"
+          rm -rf ./build/ipa-tmp
+          mkdir -p ./build/ipa-tmp/Payload
+          cp -R "${APP_PATH}" "./build/ipa-tmp/Payload/"
+          cd ./build/ipa-tmp
+          zip -r ../oiltechunsigned.ipa .
+          cd ../..
 
-      - name: Upload .ipa artifact
+      - name: Upload unsigned .ipa artifact
         uses: actions/upload-artifact@v4
         with:
-          name: oiltech-ipa
-          path: iosApp/build/ipa/*.ipa
+          name: oiltech-ipa-sideloadly
+          path: iosApp/oiltechunsigned.ipa
