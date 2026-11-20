@@ -1,0 +1,60 @@
+name: iOS Release .ipa
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (для Kotlin 2.2.10 / Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build KMP shared framework for iOS
+        run: |
+          ./gradlew :shared:packForXcode \
+            -Pkotlin.native.cocoapods.targets=iosArm64 \
+            --no-configuration-cache
+
+      - name: Generate Xcode project
+        run: |
+          cd iosApp
+          xcodegen generate
+
+      - name: Build archive and export .ipa
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+          CODE_SIGN_IDENTITY: ${{ secrets.CODE_SIGN_IDENTITY }}
+          PROVISIONING_PROFILE: ${{ secrets.PROVISIONING_PROFILE }}
+        run: |
+          cd iosApp
+          xcodebuild -scheme iosApp -configuration Release -sdk iphoneos \
+            -archivePath ./build/iosApp.xcarchive \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            archive
+
+          xcodebuild -exportArchive \
+            -archivePath ./build/iosApp.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath ./build/ipa
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oiltech-ipa
+          path: iosApp/build/ipa/*.ipa
