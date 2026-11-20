@@ -21,6 +21,9 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
       - name: Build KMP shared framework for iOS
         run: |
           ./gradlew :shared:packForXcode \
