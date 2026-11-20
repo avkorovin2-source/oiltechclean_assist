@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import SwiftData
 import Shared
 
@@ -7,8 +7,6 @@ struct AddJournalRecordView: View {
     @StateObject private var vm: AddJournalRecordViewModel
 
     init(vm: JournalViewModel) {
-        // Переиспользуем контекст из главного ViewModel через новый экземпляр с тем же контейнером
-        // Для простоты создаём свой контейнер — в реальном проекте стоит вынести ModelContainer в стейт приложения
         _vm = StateObject(wrappedValue: AddJournalRecordViewModel(context: ModelContext(try! ModelContainer(for: JournalRecord.self, AcceptanceCheck.self))))
     }
 
@@ -17,52 +15,52 @@ struct AddJournalRecordView: View {
             ScrollView {
                 VStack(spacing: 14) {
                     SectionCard {
-                        SectionHeader(title: "Новый замер", subtitle: "Полевой журнал")
+                        SectionHeader(title: "овый замер", subtitle: "олевой журнал")
 
-                        LabeledTextField("Объект / подстанция", text: $vm.substationName)
-                        LabeledTextField("Трансформатор", text: $vm.transformerName)
-                        LabeledTextField("Установка ОИЛТЕХКЛИН", text: $vm.unitModel)
-                        LabeledTextField("Дата и время замера", text: $vm.recordDate)
-                        LabeledTextField("Класс напряжения", text: $vm.voltageClass)
+                        LabeledTextField("бъект / подстанция", text: .substationName)
+                        LabeledTextField("Трансформатор", text: .transformerName)
+                        LabeledTextField("становка ТХ", text: .unitModel)
+                        LabeledTextField("ата и время замера", text: .recordDate)
+                        LabeledTextField("ласс напряжения", text: .voltageClass)
 
                         HairLine()
 
                         Button("Сохранить замер") { vm.save(); dismiss() }
                             .buttonStyle(.borderedProminent)
-                            .disabled(vm.substationName.isEmpty || vm.transformerName.isEmpty)
+                            .disabled((vm.substationName.isEmpty || vm.transformerName.isEmpty))
                             .frame(maxWidth: .infinity)
                     }
 
                     SectionCard {
-                        SectionHeader(title: "Результаты измерений", subtitle: "Параметры до и после обработки")
+                        SectionHeader(title: "езультаты измерений", subtitle: "араметры до и после обработки")
 
                         HStack(spacing: 10) {
-                            NumberField("Влажность ДО", value: $vm.moistureBefore, suffix: "ppm")
-                            NumberField("Влажность ПОСЛЕ", value: $vm.moistureAfter, suffix: "ppm")
+                            NumberField("лажность ", value: .moistureBefore, suffix: "ppm")
+                            NumberField("лажность С", value: .moistureAfter, suffix: "ppm")
                         }
                         HStack(spacing: 10) {
-                            NumberField("Пробив. ДО", value: $vm.breakdownBefore, suffix: "кВ")
-                            NumberField("Пробив. ПОСЛЕ", value: $vm.breakdownAfter, suffix: "кВ")
+                            NumberField("робив. ", value: .breakdownBefore, suffix: "к")
+                            NumberField("робив. С", value: .breakdownAfter, suffix: "к")
                         }
                         HStack(spacing: 10) {
-                            NumberField("Кислота ДО", value: $vm.acidNumberBefore, suffix: "мг КОН/г")
-                            NumberField("Кислота ПОСЛЕ", value: $vm.acidNumberAfter, suffix: "мг КОН/г")
+                            NumberField("ислота ", value: .acidNumberBefore, suffix: "мг /г")
+                            NumberField("ислота С", value: .acidNumberAfter, suffix: "мг /г")
                         }
                         HStack(spacing: 10) {
-                            NumberField("tgδ ДО", value: $vm.tanDeltaBefore, suffix: "%")
-                            NumberField("tgδ ПОСЛЕ", value: $vm.tanDeltaAfter, suffix: "%")
+                            NumberField("tgδ ", value: .tanDeltaBefore, suffix: "%")
+                            NumberField("tgδ С", value: .tanDeltaAfter, suffix: "%")
                         }
                         HStack(spacing: 10) {
-                            NumberField("Темп. масла", value: $vm.oilTemperatureC, suffix: "°C")
-                            NumberField("Газ ПОСЛЕ", value: $vm.gasContentAfter, suffix: "%")
+                            NumberField("Температура масла", value: .oilTemperatureC, suffix: "°C")
+                            NumberField("аз С", value: .gasContentAfter, suffix: "%")
                         }
                         HStack(spacing: 10) {
-                            NumberField("Вспышка ПОСЛЕ", value: $vm.flashPointAfter, suffix: "°C")
+                            NumberField("спышка С", value: .flashPointAfter, suffix: "°C")
                         }
 
                         HairLine()
 
-                        Button("Оценить по ГОСТ / РД") { vm.evaluateGost() }
+                        Button("ценить по СТ / ") { vm.evaluateGost() }
                             .buttonStyle(.bordered)
                             .frame(maxWidth: .infinity)
 
@@ -72,25 +70,30 @@ struct AddJournalRecordView: View {
                     }
 
                     SectionCard {
-                        SectionHeader(title: "Примечания", subtitle: "Свободное описание замера")
-                        LabeledTextField("Примечания", text: $vm.remarks)
+                        SectionHeader(title: "римечания", subtitle: "Свободное описание замера")
+                        LabeledTextField("римечания", text: .remarks)
                     }
                 }
                 .padding(.vertical, 8)
             }
-        } // NavigationStack
-    } // body
-} // struct AddJournalRecordView
+            .navigationTitle("обавить замер")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("тмена") { dismiss() }
+                }
+            }
+        }
+    }
 
-    // MARK: - Компоненты формы
-
+    // MARK: - омпоненты формы
     struct LabeledTextField: View {
         let label: String
         @Binding var text: String
         var body: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label).font(.caption).foregroundColor(.secondary)
-                TextField("", text: $text)
+                TextField("", text: )
                     .textFieldStyle(.roundedBorder)
             }
         }
@@ -104,7 +107,7 @@ struct AddJournalRecordView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label).font(.caption).foregroundColor(.secondary)
                 HStack {
-                    TextField("", text: $value)
+                    TextField("", text: )
                         .keyboardType(.decimalPad)
                         .textFieldStyle(.roundedBorder)
                     if let suffix { Text(suffix).font(.caption).foregroundColor(.secondary) }
@@ -115,20 +118,16 @@ struct AddJournalRecordView: View {
 
     struct GostResultCard: View {
         let report: GostComplianceEvaluator.ComplianceReport
-
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Заключение по ГОСТ / РД")
-
-                Text(report.isCompliant ? "Соответствует нормам" : "Не соответствует нормам")
+                SectionHeader(title: "аключение по СТ / ")
+                Text(report.isCompliant ? "Соответствует нормам" : "е соответствует нормам")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(report.isCompliant ? .green : .red)
-
                 Text("\(report.passed.count) из \(report.evaluated.count) показателей пройдено")
                     .font(.caption)
                     .foregroundColor(.secondary)
-
                 ForEach(report.failed, id: \.parameter) { check in
                     HStack {
                         Text(check.parameter)
@@ -143,8 +142,7 @@ struct AddJournalRecordView: View {
         }
     }
 
-    // MARK: - Базовые UI-компоненты
-
+    // MARK: - азовые UI-компоненты
     struct SectionCard<Content: View>: View {
         let content: Content
         init(@ViewBuilder content: () -> Content) { self.content = content() }
@@ -174,12 +172,4 @@ struct AddJournalRecordView: View {
     struct HairLine: View {
         var body: some View { Divider().padding(.vertical, 6) }
     }
-            .navigationTitle("Добавить замер")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Отмена") { dismiss() }
-                }
-            }
-        }
-    }
+}

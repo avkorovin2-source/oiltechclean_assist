@@ -1,9 +1,9 @@
-import SwiftUI
+﻿import SwiftUI
 import SwiftData
 import Shared
 
 struct JournalView: View {
-    @Environment(\.modelContext) private var context
+    @Environment(\\.modelContext) private var context
     @StateObject private var vm: JournalViewModel
     @State private var showingAddRecord = false
     @State private var exportRecord: JournalRecord?
@@ -22,17 +22,17 @@ struct JournalView: View {
                     JournalListView(vm: vm)
                 }
             }
-            .navigationTitle("Журнал")
+            .navigationTitle("урнал")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Добавить") { showingAddRecord = true }
+                    Button("обавить") { showingAddRecord = true }
                 }
             }
-            .sheet(isPresented: $showingAddRecord) {
+            .sheet(isPresented: ) {
                 AddJournalRecordView(vm: vm)
             }
-            .sheet(item: $exportRecord) { record in
+            .sheet(item: ) { record in
                 if let url = try? PDFReportGenerator.generateReport(record: record) {
                     PDFShareView(fileURL: url) {
                         exportRecord = nil
@@ -42,19 +42,15 @@ struct JournalView: View {
         }
     }
 
-    // MARK: - Пустое состояние
-
     struct EmptyJournalView: View {
         var body: some View {
             ContentUnavailableView(
-                "Записей нет",
+                "аписей нет",
                 systemImage: "doc.text",
-                description: Text("Добавьте первый замер через кнопку «Добавить»")
+                description: Text("обавьте первый замер через кнопку «обавить»")
             )
         }
     }
-
-    // MARK: - Список записей
 
     struct JournalListView: View {
         @ObservedObject var vm: JournalViewModel
@@ -64,10 +60,10 @@ struct JournalView: View {
                 ForEach(vm.records) { record in
                     JournalRow(record: record)
                         .swipeActions {
-                            Button("Удалить", role: .destructive) {
+                            Button("далить", role: .destructive) {
                                 vm.deleteRecord(record)
                             }
-                            Button("Экспорт PDF") {
+                            Button("кспорт PDF") {
                                 exportRecord = record
                             }
                             .tint(.blue)
@@ -94,8 +90,8 @@ struct JournalView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 HStack(spacing: 16) {
-                    SpecChip(label: "Влаж. ДО/ПОСЛЕ", value: "\(record.moistureBefore) / \(record.moistureAfter) ppm")
-                    SpecChip(label: "Пробив. ДО/ПОСЛЕ", value: "\(record.breakdownBefore) / \(record.breakdownAfter) кВ")
+                    SpecChip(label: "лаж. /С", value: "\(record.moistureBefore) / \(record.moistureAfter) ppm")
+                    SpecChip(label: "робив. /С", value: "\(record.breakdownBefore) / \(record.breakdownAfter) к")
                 }
                 if let conclusion = record.conclusion, !conclusion.isEmpty {
                     Text(conclusion)
@@ -119,3 +115,4 @@ struct JournalView: View {
             .frame(maxWidth: .infinity)
         }
     }
+}
