@@ -1,0 +1,44 @@
+*.iml
+.gradle
+.kotlin
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+keystore.properties
+*.jks
+*.keystore
+
+# --- KMP / iOS ---
+/shared/build/
+/iosApp/build/
+**/DerivedData/
+*.ipa
+*.dSYM.zip
+*.xcarchive
+
+# Xcode-проект генерируется XcodeGen (iosApp/project.yml), в репозиторий не попадает
+/iosApp/*.xcodeproj/
+/iosApp/*.xcworkspace/
+
+# Секреты, подписи, профили — только через CI-секреты
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+*.xcconfig.local
+.env
+.env.*
+!/.env.example
+/google-services.json
+/GoogleService-Info.plist

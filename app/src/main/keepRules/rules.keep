@@ -1,0 +1,52 @@
+# ===== Собственный код приложения =====
+# MainActivity объявлена в AndroidManifest.xml и создаётся системой по имени.
+# Без этого правила R8 удаляет её, и приложение падает на старте с
+# ClassNotFoundException: ru.oiltechclean.assistant.MainActivity
+-keep class ru.oiltechclean.assistant.MainActivity { *; }
+-keep class ru.oiltechclean.assistant.** { *; }
+
+# ===== Room =====
+# Room генерирует AppDatabase_Impl / JournalDao_Impl и загружает их по имени
+# через рефлексию (Class.forName). Переименование ломает инициализацию БД.
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keepclassmembers class * extends androidx.room.RoomDatabase {
+    public <init>(...);
+}
+-dontwarn androidx.room.paging.**
+
+# ===== Moshi =====
+# Кодоген Moshi создаёт *JsonAdapter, которые ищутся по имени через рефлексию.
+-keep class com.squareup.moshi.** { *; }
+-keep interface com.squareup.moshi.** { *; }
+-keep @com.squareup.moshi.JsonClass class * { *; }
+-keepclassmembers class * {
+    @com.squareup.moshi.Json <fields>;
+}
+-keepclasseswithmembers class * {
+    @com.squareup.moshi.* <methods>;
+}
+-dontwarn com.squareup.moshi.**
+
+# ===== Retrofit =====
+-keepattributes Signature, InnerClasses, EnclosingMethod
+-keepattributes RuntimeVisibleAnnotations, RuntimeVisibleParameterAnnotations
+-keepclassmembers,allowshrinking,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+-dontwarn retrofit2.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# ===== OkHttp =====
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+# ===== Kotlin =====
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
