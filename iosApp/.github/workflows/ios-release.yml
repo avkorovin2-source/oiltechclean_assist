@@ -1,0 +1,67 @@
+﻿name: iOS Build for Sideloadly (unsigned .ipa)
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (для Kotlin 2.2.10 / Gradle)
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Build KMP shared framework for iOS
+        run: |
+          ./gradlew :shared:linkDebugFrameworkIosArm64 \
+            --no-configuration-cache \
+            -Pkotlin.native.cocoapods.targets=iosArm64
+
+      - name: Locate Shared.framework
+        run: |
+          cd iosApp
+          if [ ! -d "Shared.framework" ]; then
+            echo "Shared.framework not found. Checking debug-framework..."
+          fi
+          ls -la ../shared/build/bin/iosArm64/debugFramework/
+
+      - name: Generate Xcode project
+        run: |
+          cd iosApp
+          xcodegen generate
+
+      - name: Build unsigned .app for Sideloadly
+        run: |
+          cd iosApp
+          xcodebuild -scheme iosApp -configuration Debug -sdk iphoneos \
+            -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned .app into .ipa
+        run: |
+          cd iosApp
+          APP_PATH="./build/Build/Products/Debug-iphoneos/iosApp.app"
+          rm -rf ./build/ipa-tmp
+          mkdir -p ./build/ipa-tmp/Payload
+          cp -R "${APP_PATH}" "./build/ipa-tmp/Payload/"
+          cd ./build/ipa-tmp
+          zip -r ../oiltechunsigned.ipa .
+          cd ../..
+
+      - name: Upload unsigned .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oiltech-ipa-sideloadly
+          path: iosApp/oiltechunsigned.ipa
