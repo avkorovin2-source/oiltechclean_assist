@@ -1,0 +1,104 @@
+workflows:
+  ios-debug:
+    name: iOS Debug Build
+    max_build_duration: 60
+    instance_type: mac_pro
+    environment:
+      xcode: latest
+      cocoapods: default
+      kotlin: 2.2.10
+    scripts:
+      - name: Set up environment
+        script: |
+          # Java 17 required for Gradle/Kotlin 2.2.10
+          if [ -d "/usr/local/lib/zulu-17" ]; then
+            export JAVA_HOME=/usr/local/lib/zulu-17
+            export PATH=$JAVA_HOME/bin:$PATH
+          fi
+          java -version
+
+      - name: Decrypt secrets (optional, from Codemagic variables)
+        script: |
+          # Ключи/сертификаты НЕ хранятся в репозитории.
+          # Передаются через Codemagic環境ные переменные (ENV).
+          echo "Проверка обязательных переменных CI..."
+          if [ -z "$APPLE_ID" ]; then echo "WARNING: APPLE_ID не задан"; fi
+
+      - name: Build shared KMP framework for iOS
+        script: |
+          cd "$FCI_BUILD_DIR/.."
+          ./gradlew :shared:packForXcode -Pkotlin.native.cocoapods.targets=iosArm64,iosSimulatorArm64 \
+            -Pkotlin.native.disableKotlinFrameworkPathCheck=true \
+            --no-configuration-cache
+
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen || true
+          xcodegen --version
+
+      - name: Generate Xcode project
+        script: |
+          cd "$FCI_BUILD_DIR/iosApp"
+          xcodegen generate
+
+      - name: Build iOS debug app
+        script: |
+          cd "$FCI_BUILD_DIR/iosApp"
+          xcodebuild -scheme iosApp -configuration Debug -sdk iphoneos -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Run shared unit tests (JVM, runs on macOS CI)
+        script: |
+          cd "$FCI_BUILD_DIR/.."
+          ./gradlew :shared:jvmTest --no-configuration-cache
+
+    artifacts:
+      - iosApp/build/**/*.app
+      - ../shared/build/reports/**/*
+    publishing:
+      email:
+        notify: false
+
+  ios-ipa:
+    name: iOS Release .ipa
+    max_build_duration: 60
+    instance_type: mac_pro
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Build shared KMP framework for iOS (release)
+        script: |
+          cd "$FCI_BUILD_DIR/.."
+          ./gradlew :shared:packForXcode -Pkotlin.native.cocoapods.targets=iosArm64 \
+            --no-configuration-cache
+
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen || true
+
+      - name: Generate Xcode project
+        script: |
+          cd "$FCI_BUILD_DIR/iosApp"
+          xcodegen generate
+
+      - name: Build .ipa
+        script: |
+          cd "$FCI_BUILD_DIR/iosApp"
+          xcodebuild -scheme iosApp -configuration Release -sdk iphoneos \
+            -archivePath ./build/iosApp.xcarchive \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE" \
+            archive
+
+          xcodebuild -exportArchive \
+            -archivePath ./build/iosApp.xcarchive \
+            -exportOptionsPlist ./ExportOptions.plist \
+            -exportPath ./build/ipa
+
+    artifacts:
+      - iosApp/build/ipa/**/*.ipa
+    publishing:
+      email:
+        notify: false

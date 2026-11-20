@@ -1,0 +1,22 @@
+name: iosApp
+options:
+  bundleIdPrefix: ru.oiltechclean.assistant
+  deploymentTarget:
+    iOS: "17.0"
+  idempotent: true
+
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: iosApp
+    dependencies:
+      - framework: ../shared/build/xcode-frameworks/Shared.framework
+        embed: true
+        link: true
+    settings:
+      INFOPLIST_KEY:
+        NSUIApplicationSupportsMultipleScenes: false
+        CFBundleDisplayName: OilTechClean Assistent
