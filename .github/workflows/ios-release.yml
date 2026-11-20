@@ -1,9 +1,9 @@
 name: iOS Build for Sideloadly (unsigned .ipa)
 
 on:
+  workflow_dispatch:
   push:
     tags: ["v*"]
-
 jobs:
   build-ipa:
     runs-on: macos-latest
