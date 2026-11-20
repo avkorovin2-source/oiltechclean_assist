@@ -26,9 +26,17 @@ jobs:
 
       - name: Build KMP shared framework for iOS
         run: |
-          ./gradlew :shared:packForXcode \
-            -Pkotlin.native.cocoapods.targets=iosArm64 \
-            --no-configuration-cache
+          ./gradlew :shared:linkDebugFrameworkIosArm64 \
+            --no-configuration-cache \
+            -Pkotlin.native.cocoapods.targets=iosArm64
+
+      - name: Locate Shared.framework
+        run: |
+          cd iosApp
+          if [ ! -d "Shared.framework" ]; then
+            echo "Shared.framework not found. Linking debug-framework for iosArm64..."
+          fi
+          ls -la ../shared/build/bin/iosArm64/debugFramework/
 
       - name: Generate Xcode project
         run: |
