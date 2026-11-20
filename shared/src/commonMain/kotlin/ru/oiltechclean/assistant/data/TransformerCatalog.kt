@@ -70,6 +70,7 @@ object OilAcceptanceChecklist {
                 )
             )
         ),
+
         AcceptanceCheckGroup(
             title = "Отбор пробы",
             items = listOf(

@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OilTech Assistent"
 include(":app")
+include(":shared")
