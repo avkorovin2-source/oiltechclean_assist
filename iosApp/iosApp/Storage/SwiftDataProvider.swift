@@ -5,6 +5,10 @@ import SwiftUI
 /// Реализует те же сущности, что и Android Room:
 /// - JournalRecord (journal_records)
 /// - AcceptanceCheck (acceptance_checks)
+///
+/// Класс изолирован на главном акторе: `container.mainContext` (и сам стек)
+/// создаются и используются только из SwiftUI-контекста.
+@MainActor
 final class SwiftDataProvider {
     static let shared = SwiftDataProvider()
 
