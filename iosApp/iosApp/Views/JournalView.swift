@@ -9,20 +9,26 @@ struct JournalView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if vm.records.isEmpty {
-                    EmptyJournalView()
-                } else {
-                    JournalListView(vm: vm, exportRecord: $exportRecord)
+            ScrollView {
+                VStack(spacing: 14) {
+                    BrandHeroHeader(
+                        title: "Журнал",
+                        subtitle: "Замеры и протоколы",
+                        icon: "doc.text.fill",
+                        actionTitle: "Добавить",
+                        action: { showingAddRecord = true }
+                    )
+
+                    if vm.records.isEmpty {
+                        EmptyJournalView()
+                    } else {
+                        JournalListContent(vm: vm, exportRecord: $exportRecord)
+                    }
                 }
+                .padding(.vertical, 8)
             }
-            .navigationTitle("Журнал")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Добавить") { showingAddRecord = true }
-                }
-            }
+            .brandScreen()
+            .toolbar(.hidden, for: .navigationBar)
             .task { vm.attach(context) }
             .sheet(isPresented: $showingAddRecord) {
                 AddJournalRecordView(onSaved: { vm.loadRecords() })
@@ -41,33 +47,58 @@ struct JournalView: View {
 
     struct EmptyJournalView: View {
         var body: some View {
-            ContentUnavailableView(
-                "Записей нет",
-                systemImage: "doc.text",
-                description: Text("Добавьте первый замер через кнопку «Добавить»")
-            )
+            BrandCard {
+                VStack(spacing: 10) {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 34))
+                        .foregroundColor(BrandColor.indigo)
+                        .frame(width: 72, height: 72)
+                        .background(Circle().fill(BrandColor.mistDeep))
+                    Text("Записей нет")
+                        .font(.headline)
+                        .foregroundColor(BrandColor.ink)
+                    Text("Добавьте первый замер через кнопку «Добавить»")
+                        .font(.caption)
+                        .foregroundColor(BrandColor.slate)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            }
         }
     }
 
     // MARK: - Список
 
-    struct JournalListView: View {
+    struct JournalListContent: View {
         @ObservedObject var vm: JournalViewModel
         @Binding var exportRecord: JournalRecord?
 
         var body: some View {
-            List {
-                ForEach(vm.records) { record in
+            ForEach(vm.records) { record in
+                BrandCard {
                     JournalRow(record: record)
-                        .swipeActions {
-                            Button("Удалить", role: .destructive) {
-                                vm.deleteRecord(record)
-                            }
-                            Button("Экспорт PDF") {
-                                exportRecord = record
-                            }
-                            .tint(.blue)
+
+                    HStack(spacing: 10) {
+                        Button("Экспорт PDF") { exportRecord = record }
+                            .buttonStyle(BrandSecondaryButtonStyle())
+
+                        Button(role: .destructive) {
+                            vm.deleteRecord(record)
+                        } label: {
+                            Text("Удалить")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(BrandColor.danger)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 11)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(BrandColor.dangerSoft)
+                                )
                         }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
@@ -81,14 +112,15 @@ struct JournalView: View {
                 HStack {
                     Text(record.substationName)
                         .font(.headline)
+                        .foregroundColor(BrandColor.ink)
                     Spacer()
                     Text(record.recordDate)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(BrandColor.slate)
                 }
                 Text("\(record.transformerName) · \(record.unitModel)")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(BrandColor.slate)
                 HStack(spacing: 16) {
                     SpecChip(
                         label: "Влаж. Д/С",
@@ -102,11 +134,10 @@ struct JournalView: View {
                 if let conclusion = record.conclusion, !conclusion.isEmpty {
                     Text(conclusion)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(BrandColor.slate)
                         .padding(.top, 4)
                 }
             }
-            .padding(.vertical, 4)
         }
     }
 
@@ -115,8 +146,13 @@ struct JournalView: View {
         let value: String
         var body: some View {
             VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(.caption2).foregroundColor(.secondary)
-                Text(value).font(.caption).fontWeight(.semibold)
+                Text(label)
+                    .font(.caption2)
+                    .foregroundColor(BrandColor.slateLight)
+                Text(value)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundColor(BrandColor.ink)
             }
             .frame(maxWidth: .infinity)
         }

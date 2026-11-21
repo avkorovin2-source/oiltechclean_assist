@@ -9,6 +9,12 @@ struct DiagnosticsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
+                    BrandHeroHeader(
+                        title: "Диагностика",
+                        subtitle: "ХАРГ и нормы ГОСТ",
+                        icon: "waveform.path.ecg"
+                    )
+
                     Picker("Раздел", selection: $selectedSection) {
                         Text("ХАРГ диагностика").tag(0)
                         Text("Нормы ГОСТ / РД").tag(1)
@@ -24,8 +30,8 @@ struct DiagnosticsView: View {
                 }
                 .padding(.vertical, 8)
             }
-            .navigationTitle("Диагностика")
-            .navigationBarTitleDisplayMode(.large)
+            .brandScreen()
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -35,20 +41,20 @@ struct DiagnosticsView: View {
         @ObservedObject var vm: DiagnosticsViewModel
 
         var body: some View {
-            SectionCard {
-                SectionHeader(title: "Экспресс-диагностика по газам",
+            BrandCard {
+                BrandSectionHeader(title: "Экспресс-диагностика по газам",
                               subtitle: "Концентрации растворенных газов, ppm")
 
-                NumberField("Водород (H₂)", value: $vm.h2, suffix: "ppm")
-                NumberField("Метан (CH₄)", value: $vm.ch4, suffix: "ppm")
-                NumberField("Ацетилен (C₂H₂)", value: $vm.c2h2, suffix: "ppm")
-                NumberField("Этилен (C₂H₄)", value: $vm.c2h4, suffix: "ppm")
-                NumberField("Этан (C₂H₆)", value: $vm.c2h6, suffix: "ppm")
+                BrandNumberField("Водород (H₂)", value: $vm.h2, suffix: "ppm")
+                BrandNumberField("Метан (CH₄)", value: $vm.ch4, suffix: "ppm")
+                BrandNumberField("Ацетилен (C₂H₂)", value: $vm.c2h2, suffix: "ppm")
+                BrandNumberField("Этилен (C₂H₄)", value: $vm.c2h4, suffix: "ppm")
+                BrandNumberField("Этан (C₂H₆)", value: $vm.c2h6, suffix: "ppm")
 
-                HairLine()
+                BrandHairLine()
 
                 Button("Рассчитать") { vm.calculateHarg() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(BrandPrimaryButtonStyle())
                     .frame(maxWidth: .infinity)
 
                 if let diagnosis = vm.diagnosis {
@@ -65,7 +71,7 @@ struct DiagnosticsView: View {
             let severity = diagnosis.severity.uppercased()
             let (accent, soft, icon) = severityConfig(severity)
 
-            SectionCard {
+            BrandCard {
                 HStack(alignment: .center, spacing: 12) {
                     Image(systemName: icon)
                         .font(.system(size: 24))
@@ -89,7 +95,7 @@ struct DiagnosticsView: View {
                     .font(.body)
                     .foregroundColor(.secondary)
 
-                HairLine()
+                BrandHairLine()
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("РЕКОМЕНДАЦИЯ")
@@ -107,11 +113,11 @@ struct DiagnosticsView: View {
 
         private func severityConfig(_ severity: String) -> (Color, Color, String) {
             if severity.contains("КРИТИЧ") || severity.contains("ВЫСОК") {
-                return (.red, .red.opacity(0.15), "exclamationmark.triangle.fill")
+                return (BrandColor.danger, BrandColor.dangerSoft, "exclamationmark.triangle.fill")
             } else if severity.contains("ВНИМАНИЕ") || severity.contains("УМЕРЕН") {
-                return (.orange, .orange.opacity(0.15), "warninglight.fill")
+                return (BrandColor.warning, BrandColor.warningSoft, "exclamationmark.triangle.fill")
             } else {
-                return (.green, .green.opacity(0.15), "checkmark.circle.fill")
+                return (BrandColor.success, BrandColor.successSoft, "checkmark.circle.fill")
             }
         }
     }
@@ -122,8 +128,8 @@ struct DiagnosticsView: View {
         @ObservedObject var vm: DiagnosticsViewModel
 
         var body: some View {
-            SectionCard {
-                SectionHeader(title: "Предельные значения показателей",
+            BrandCard {
+                BrandSectionHeader(title: "Предельные значения показателей",
                               subtitle: "РД 34.45-51.300-97")
 
                 Text("Допустимые значения качества масла по классам напряжения.")
@@ -141,7 +147,7 @@ struct DiagnosticsView: View {
         let row: GostStandardRow
 
         var body: some View {
-            SectionCard {
+            BrandCard {
                 HStack(alignment: .center, spacing: 12) {
                     Text(row.voltageClass)
                         .font(.headline)
@@ -153,87 +159,18 @@ struct DiagnosticsView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(.blue)
+                        .background(BrandColor.indigo)
                         .cornerRadius(8)
                 }
 
-                HairLine()
+                BrandHairLine()
 
-                SpecRow(label: "Пробивное напряжение, не менее", value: "\(row.breakdownVoltageKvMin) кВ")
-                SpecRow(label: "Влагосодержание, не более", value: "\(row.moisturePpmMax) ppm")
-                SpecRow(label: "Газосодержание, не более", value: "\(row.gasContentPercentMax) %")
-                SpecRow(label: "Кислотное число, не более", value: "\(row.acidNumberMax) мг КОН/г")
-                SpecRow(label: "tg δ при 90 °C, не более", value: "\(row.tanDelta90CMax) %")
+                BrandSpecRow(label: "Пробивное напряжение, не менее", value: "\(row.breakdownVoltageKvMin) кВ")
+                BrandSpecRow(label: "Влагосодержание, не более", value: "\(row.moisturePpmMax) ppm")
+                BrandSpecRow(label: "Газосодержание, не более", value: "\(row.gasContentPercentMax) %")
+                BrandSpecRow(label: "Кислотное число, не более", value: "\(row.acidNumberMax) мг КОН/г")
+                BrandSpecRow(label: "tg δ при 90 °C, не более", value: "\(row.tanDelta90CMax) %")
             }
         }
-    }
-
-    // MARK: - Базовые UI-компоненты
-
-    struct SectionCard<Content: View>: View {
-        let content: Content
-        init(@ViewBuilder content: () -> Content) { self.content = content() }
-        var body: some View {
-            VStack(alignment: .leading, spacing: 0) { content }
-                .padding(16)
-                .background(Color(.systemBackground))
-                .cornerRadius(18)
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                .padding(.horizontal, 16)
-        }
-    }
-
-    struct SectionHeader: View {
-        let title: String
-        let subtitle: String?
-        init(title: String, subtitle: String? = nil) { self.title = title; self.subtitle = subtitle }
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.headline).fontWeight(.bold)
-                if let subtitle { Text(subtitle).font(.caption).foregroundColor(.secondary) }
-            }
-            .padding(.bottom, 10)
-        }
-    }
-
-    struct NumberField: View {
-        let label: String
-        @Binding var value: String
-        let suffix: String?
-
-        init(_ label: String, value: Binding<String>, suffix: String? = nil) {
-            self.label = label
-            self._value = value
-            self.suffix = suffix
-        }
-
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(label).font(.caption).foregroundColor(.secondary)
-                HStack {
-                    TextField("", text: $value)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
-                    if let suffix { Text(suffix).font(.caption).foregroundColor(.secondary) }
-                }
-            }
-        }
-    }
-
-    struct SpecRow: View {
-        let label: String
-        let value: String
-        var body: some View {
-            HStack {
-                Text(label).font(.body).foregroundColor(.secondary)
-                Spacer()
-                Text(value).font(.body).fontWeight(.semibold)
-            }
-            .padding(.vertical, 2)
-        }
-    }
-
-    struct HairLine: View {
-        var body: some View { Divider().padding(.vertical, 6) }
     }
 }

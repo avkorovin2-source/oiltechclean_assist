@@ -5,31 +5,29 @@ struct ContentView: View {
         TabView {
             CalculatorsView()
                 .tabItem {
-                    Image(systemName: "function")
-                    Text("Расчеты")
+                    Label("Расчеты", systemImage: "function")
                 }
                 .tag(0)
 
             DiagnosticsView()
                 .tabItem {
-                    Image(systemName: "microscope")
-                    Text("Диагностика")
+                    Label("Диагностика", systemImage: "waveform.path.ecg")
                 }
                 .tag(1)
 
             EquipmentView()
                 .tabItem {
-                    Image(systemName: "cpu")
-                    Text("Установки")
+                    Label("Установки", systemImage: "wrench.and.screwdriver.fill")
                 }
                 .tag(2)
 
             JournalView()
                 .tabItem {
-                    Image(systemName: "doc.text")
-                    Text("Журнал")
+                    Label("Журнал", systemImage: "doc.text.fill")
                 }
                 .tag(3)
         }
+        .tint(BrandColor.indigo)
+        .preferredColorScheme(.light)
     }
 }

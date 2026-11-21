@@ -16,28 +16,28 @@ struct AcceptanceCheckView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    SectionCard {
-                        SectionHeader(title: "Чек-лист приёмки масла",
+                    BrandCard {
+                        BrandSectionHeader(title: "Чек-лист приёмки масла",
                                       subtitle: "Входной контроль перед заливкой")
 
-                        LabeledTextField("Объект / подстанция", text: $vm.objectName)
+                        BrandLabeledTextField("Объект / подстанция", text: $vm.objectName)
 
                         HStack(spacing: 10) {
-                            ResultTile(label: "Критичных", value: "\(vm.missingCritical) из \(vm.criticalTotal)", unit: nil)
-                            ResultTile(label: "Вердикт", value: vm.approved ? "Допущено" : "Не допущено", unit: nil)
+                            BrandResultTile(label: "Критичных", value: "\(vm.missingCritical) из \(vm.criticalTotal)", unit: nil)
+                            BrandResultTile(label: "Вердикт", value: vm.approved ? "Допущено" : "Не допущено", unit: nil)
                         }
 
-                        HairLine()
+                        BrandHairLine()
 
                         Button("Сохранить в историю") { vm.saveCheck() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(BrandPrimaryButtonStyle())
                             .disabled(!vm.canSave)
                             .frame(maxWidth: .infinity)
                     }
 
                     ForEach(OilAcceptanceChecklist.shared.groups, id: \.title) { group in
-                        SectionCard {
-                            SectionHeader(title: group.title)
+                        BrandCard {
+                            BrandSectionHeader(title: group.title)
                             ForEach(group.items, id: \.id) { item in
                                 AcceptanceCheckRow(
                                     item: item,
@@ -54,6 +54,7 @@ struct AcceptanceCheckView: View {
             }
             .navigationTitle("Приёмка масла")
             .navigationBarTitleDisplayMode(.inline)
+            .brandScreen()
             .task { vm.attach(context) }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -65,24 +66,6 @@ struct AcceptanceCheckView: View {
 
     // MARK: - Компоненты чек-листа
 
-    struct LabeledTextField: View {
-        let label: String
-        @Binding var text: String
-
-        init(_ label: String, text: Binding<String>) {
-            self.label = label
-            self._text = text
-        }
-
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(label).font(.caption).foregroundColor(.secondary)
-                TextField("", text: $text)
-                    .textFieldStyle(.roundedBorder)
-            }
-        }
-    }
-
     struct AcceptanceCheckRow: View {
         let item: AcceptanceCheckItem
         let isChecked: Bool
@@ -92,7 +75,7 @@ struct AcceptanceCheckView: View {
             HStack {
                 Button(action: onToggle) {
                     Image(systemName: isChecked ? "checkmark.square.fill" : "square")
-                        .foregroundColor(isChecked ? .blue : .secondary)
+                        .foregroundColor(isChecked ? BrandColor.indigo : BrandColor.slateLight)
                         .font(.system(size: 24))
                 }
                 .buttonStyle(.plain)
@@ -101,10 +84,10 @@ struct AcceptanceCheckView: View {
                     Text(item.title)
                         .font(.body)
                         .fontWeight(item.isCritical ? .semibold : .regular)
-                        .foregroundColor(item.isCritical ? .red : .primary)
+                        .foregroundColor(item.isCritical ? BrandColor.danger : BrandColor.ink)
                     Text(item.detail)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(BrandColor.slate)
                 }
                 Spacer()
             }
@@ -117,14 +100,14 @@ struct AcceptanceCheckView: View {
         @ObservedObject var vm: AcceptanceCheckViewModel
 
         var body: some View {
-            SectionCard {
-                SectionHeader(title: "История проверок",
+            BrandCard {
+                BrandSectionHeader(title: "История проверок",
                               subtitle: "Сохранённые снимки по объектам")
 
                 if vm.history.isEmpty {
                     Text("Проверок пока нет. После сохранения здесь появится журнал.")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(BrandColor.slate)
                 } else {
                     ForEach(vm.history) { check in
                         HistoryRow(check: check, onDelete: { vm.deleteCheck($0) })
@@ -139,7 +122,7 @@ struct AcceptanceCheckView: View {
         let onDelete: (AcceptanceCheck) -> Void
 
         var body: some View {
-            let verdictColor: Color = check.approved ? .green : .red
+            let verdictColor: Color = check.approved ? BrandColor.success : BrandColor.danger
             let verdictText = check.approved ? "Допущено" : "Не допущено"
             let checkedCount = check.checkedItemIds.split(separator: ",").filter { !$0.isEmpty }.count
 
@@ -150,7 +133,7 @@ struct AcceptanceCheckView: View {
                         .fontWeight(.semibold)
                     Text("\(formattedDate(check.checkedAt)) · отмечено \(checkedCount) из \(OilAcceptanceChecklist.shared.totalItems)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(BrandColor.slate)
                     Text(verdictText)
                         .font(.caption2)
                         .fontWeight(.bold)
@@ -173,56 +156,5 @@ struct AcceptanceCheckView: View {
             formatter.dateFormat = "dd.MM.yyyy HH:mm"
             return formatter.string(from: date)
         }
-    }
-
-    // MARK: - Базовые UI-компоненты
-
-    struct SectionCard<Content: View>: View {
-        let content: Content
-        init(@ViewBuilder content: () -> Content) { self.content = content() }
-        var body: some View {
-            VStack(alignment: .leading, spacing: 0) { content }
-                .padding(16)
-                .background(Color(.systemBackground))
-                .cornerRadius(18)
-                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                .padding(.horizontal, 16)
-        }
-    }
-
-    struct SectionHeader: View {
-        let title: String
-        let subtitle: String?
-        init(title: String, subtitle: String? = nil) { self.title = title; self.subtitle = subtitle }
-        var body: some View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title).font(.headline).fontWeight(.bold)
-                if let subtitle { Text(subtitle).font(.caption).foregroundColor(.secondary) }
-            }
-            .padding(.bottom, 10)
-        }
-    }
-
-    struct ResultTile: View {
-        let label: String
-        let value: String
-        let unit: String?
-        var body: some View {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label.uppercased()).font(.caption2).foregroundColor(.secondary)
-                HStack(alignment: .bottom, spacing: 2) {
-                    Text(value).font(.title3).fontWeight(.bold)
-                    if let unit { Text(unit).font(.caption).foregroundColor(.secondary) }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(12)
-        }
-    }
-
-    struct HairLine: View {
-        var body: some View { Divider().padding(.vertical, 6) }
     }
 }

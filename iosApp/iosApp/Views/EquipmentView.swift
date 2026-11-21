@@ -20,8 +20,8 @@ struct EquipmentView: View {
                     EquipmentListView(vm: vm)
                 }
             }
-            .navigationTitle("Установки")
-            .navigationBarTitleDisplayMode(.large)
+            .brandScreen()
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
@@ -33,58 +33,63 @@ struct EquipmentView: View {
         var body: some View {
             ScrollView {
                 VStack(spacing: 14) {
-                    SectionCard {
-                        SectionHeader(title: "Каталог установок ОИЛТЕХКЛИН")
+                    BrandHeroHeader(
+                        title: "Установки",
+                        subtitle: "Паспорта и чек-листы",
+                        icon: "wrench.and.screwdriver.fill"
+                    )
+
+                    BrandCard {
+                        BrandSectionHeader(title: "Каталог установок ОИЛТЕХКЛИН", icon: "shippingbox.fill")
 
                         Button("Чек-лист приёмки масла") {
                             vm.showAcceptance = true
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(BrandPrimaryButtonStyle())
                         .frame(maxWidth: .infinity)
 
                         HStack(spacing: 10) {
-                            ResultTile(label: "Пунктов", value: "\(OilAcceptanceChecklist.shared.totalItems)", unit: nil)
-                            ResultTile(label: "Критичных", value: "\(OilAcceptanceChecklist.shared.criticalItems)", unit: nil)
+                            BrandResultTile(label: "Пунктов", value: "\(OilAcceptanceChecklist.shared.totalItems)", unit: nil)
+                            BrandResultTile(label: "Критичных", value: "\(OilAcceptanceChecklist.shared.criticalItems)", unit: nil)
                         }
-
-                        HairLine()
                     }
 
                     ForEach(vm.equipmentList, id: \.id) { unit in
-                        SectionCard {
+                        BrandCard {
                             Button { vm.selectedUnit = unit } label: {
                                 VStack(alignment: .leading, spacing: 8) {
                                     HStack {
-                                        Box {
-                                            Image(systemName: "cpu.fill")
-                                                .font(.system(size: 22))
-                                                .foregroundColor(.white)
-                                        }
-                                        .frame(width: 46, height: 46)
-                                        .background(.blue.opacity(0.8))
-                                        .cornerRadius(14)
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(BrandColor.brandGradient)
+                                            .frame(width: 46, height: 46)
+                                            .overlay(
+                                                Image(systemName: "cpu.fill")
+                                                    .font(.system(size: 21))
+                                                    .foregroundColor(.white)
+                                            )
 
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(unit.name)
                                                 .font(.title3)
                                                 .fontWeight(.bold)
+                                                .foregroundColor(BrandColor.ink)
                                             Text(unit.series)
                                                 .font(.caption)
-                                                .foregroundColor(.secondary)
+                                                .foregroundColor(BrandColor.slate)
                                         }
                                         Spacer()
                                         Image(systemName: "chevron.right")
-                                            .foregroundColor(.secondary)
+                                            .foregroundColor(BrandColor.slateLight)
                                     }
 
                                     HStack(spacing: 10) {
-                                        StatusBadge(text: "\(unit.capacityM3H) м³/ч", color: .blue)
-                                        StatusBadge(text: "\(unit.heaterPowerKw) кВт", color: .purple)
+                                        BrandStatusBadge(text: "\(unit.capacityM3H) м³/ч", color: BrandColor.indigo)
+                                        BrandStatusBadge(text: "\(unit.heaterPowerKw) кВт", color: BrandColor.purple)
                                     }
 
                                     Text(vm.summary(for: unit))
-                                        .font(.body)
-                                        .foregroundColor(.secondary)
+                                        .font(.subheadline)
+                                        .foregroundColor(BrandColor.slate)
                                 }
                             }
                             .buttonStyle(.plain)
@@ -109,35 +114,38 @@ struct EquipmentView: View {
                 VStack(spacing: 14) {
                     HStack {
                         Button(action: onBack) {
-                            Image(systemName: "arrow.left")
-                                .foregroundColor(.blue)
-                            Text("К списку установок")
-                                .foregroundColor(.blue)
-                                .fontWeight(.semibold)
+                            HStack(spacing: 6) {
+                                Image(systemName: "chevron.left")
+                                Text("К списку установок")
+                                    .fontWeight(.semibold)
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(BrandColor.deep)
                         }
                         Spacer()
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 16)
 
-                    SectionCard {
+                    BrandCard {
                         Text(unit.name)
                             .font(.title2)
-                            .fontWeight(.bold)
-                        StatusBadge(text: unit.series, color: .purple)
+                            .fontWeight(.heavy)
+                            .foregroundColor(BrandColor.ink)
+                        BrandStatusBadge(text: unit.series, color: BrandColor.purple)
                         Text(summary)
-                            .font(.body)
-                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                            .foregroundColor(BrandColor.slate)
 
-                        HairLine()
+                        BrandHairLine()
 
-                        SpecRow(label: "Производительность", value: "\(unit.capacityM3H) м³/ч")
-                        SpecRow(label: "Мощность нагревателя", value: "\(unit.heaterPowerKw) кВт")
-                        SpecRow(label: "Остаточная влага", value: "≤ \(unit.residualMoisturePpm) ppm")
-                        SpecRow(label: "Остаточное газосодержание", value: "≤ \(unit.residualGasPercent) %")
+                        BrandSpecRow(label: "Производительность", value: "\(unit.capacityM3H) м³/ч")
+                        BrandSpecRow(label: "Мощность нагревателя", value: "\(unit.heaterPowerKw) кВт")
+                        BrandSpecRow(label: "Остаточная влага", value: "≤ \(unit.residualMoisturePpm) ppm")
+                        BrandSpecRow(label: "Остаточное газосодержание", value: "≤ \(unit.residualGasPercent) %")
                     }
 
-                    SectionCard {
-                        SectionHeader(title: "Чек-лист предпусковой проверки",
+                    BrandCard {
+                        BrandSectionHeader(title: "Чек-лист предпусковой проверки",
                                       subtitle: "Отметьте выполненные пункты")
 
                         ForEach(unit.startupChecklist, id: \.self) { step in
@@ -145,12 +153,12 @@ struct EquipmentView: View {
                         }
                     }
 
-                    SectionCard {
-                        SectionHeader(title: "Аварийный помощник",
+                    BrandCard {
+                        BrandSectionHeader(title: "Аварийный помощник",
                                       subtitle: "Типовые неисправности и решения")
 
                         ForEach(Array(troubleshooting.enumerated()), id: \.offset) { index, item in
-                            if index > 0 { HairLine() }
+                            if index > 0 { BrandHairLine() }
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.problem)
                                     .font(.body)
@@ -164,104 +172,32 @@ struct EquipmentView: View {
                 }
                 .padding(.vertical, 8)
             }
-            .navigationTitle(unit.name)
-            .navigationBarTitleDisplayMode(.inline)
+            .brandScreen()
         }
     }
 }
 
-// MARK: - Базовые UI-компоненты
 
-struct SectionCard<Content: View>: View {
-    let content: Content
-    init(@ViewBuilder content: () -> Content) { self.content = content() }
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) { content }
-            .padding(16)
-            .background(Color(.systemBackground))
-            .cornerRadius(18)
-            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-            .padding(.horizontal, 16)
-    }
-}
-
-struct SectionHeader: View {
-    let title: String
-    let subtitle: String?
-    init(title: String, subtitle: String? = nil) { self.title = title; self.subtitle = subtitle }
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title).font(.headline).fontWeight(.bold)
-            if let subtitle { Text(subtitle).font(.caption).foregroundColor(.secondary) }
-        }
-        .padding(.bottom, 10)
-    }
-}
-
-struct ResultTile: View {
-    let label: String
-    let value: String
-    let unit: String?
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label.uppercased()).font(.caption2).foregroundColor(.secondary)
-            HStack(alignment: .bottom, spacing: 2) {
-                Text(value).font(.title3).fontWeight(.bold)
-                if let unit { Text(unit).font(.caption).foregroundColor(.secondary) }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color.blue.opacity(0.1))
-        .cornerRadius(12)
-    }
-}
-
-struct SpecRow: View {
-    let label: String
-    let value: String
-    var body: some View {
-        HStack {
-            Text(label).font(.body).foregroundColor(.secondary)
-            Spacer()
-            Text(value).font(.body).fontWeight(.semibold)
-        }
-        .padding(.vertical, 2)
-    }
-}
-
-struct StatusBadge: View {
-    let text: String
-    let color: Color
-    var body: some View {
-        Text(text)
-            .font(.caption)
-            .fontWeight(.bold)
-            .foregroundColor(color)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(color.opacity(0.12))
-            .cornerRadius(20)
-    }
-}
+// MARK: - Вспомогательные строки
 
 struct AcceptanceRow: View {
     let title: String
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
             Image(systemName: "circle")
-                .foregroundColor(.secondary)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(BrandColor.sky)
+                .frame(width: 22, height: 22)
+                .background(Circle().fill(BrandColor.mistDeep))
             Text(title)
-                .font(.body)
+                .font(.subheadline)
+                .foregroundColor(BrandColor.inkSoft)
+            Spacer(minLength: 0)
         }
-        .padding(.vertical, 2)
     }
 }
 
-struct HairLine: View {
-    var body: some View { Divider().padding(.vertical, 6) }
-}
-
+/// Обёртка для контента карточек списка.
 struct Box<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
