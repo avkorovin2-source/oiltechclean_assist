@@ -104,6 +104,35 @@ fun LabeledTextField(
     )
 }
 
+/** Многострочное текстовое поле (сообщения, отзывы). */
+@Composable
+fun MultilineTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    minLines: Int = 5
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        minLines = minLines,
+        singleLine = false,
+        shape = RoundedCornerShape(14.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = BrandIndigo,
+            unfocusedBorderColor = Line,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedLabelColor = BrandIndigo,
+            unfocusedLabelColor = Slate,
+            cursorColor = BrandIndigo
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
+}
+
 /**
  * Поле выбора значения из списка: показывает текущее значение и раскрывает меню.
  * Используется для справочников (класс напряжения, тип трансформатора).

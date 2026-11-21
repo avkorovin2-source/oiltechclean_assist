@@ -1,6 +1,6 @@
 # OilTech Assistant — Полный исходный код Android-приложения (MVP) и инструкция по сборке
 
-**Стек технологий:** Kotlin, Jetpack Compose, Material 3, Android SDK 26–35 (100% офлайн-работа).  
+**Стек технологий:** Kotlin, Jetpack Compose, Material 3, Android SDK 26–35 (офлайн-работа; сеть нужна только для отправки обратной связи — см. `FEEDBACK.md`).  
 **Пакет приложения:** `ru.oiltechclean.assistant`
 
 ---

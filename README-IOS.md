@@ -25,7 +25,7 @@
 | Локальное хранилище | SwiftData (`SwiftDataProvider`, `JournalRecord`, `AcceptanceCheck`) | Аналог Room на Android |
 | ViewModel / состояние | `@MainActor` + `@Published` (ObservableObject) | Аналог ViewModel + StateFlow |
 | PDF-отчёты | PDFKit (планируется) | Аналог `PdfReportGenerator` на Android |
-| Сеть / камера / локация | Не требуются (приложение 100 % офлайн) | — |
+| Сеть / камера / локация | Сеть — только для отправки обратной связи (см. `FEEDBACK.md`), камера/локация не требуются | — |
 
 ## Структура проекта
 
@@ -34,14 +34,17 @@ iosApp/
 ├── project.yml               # Конфигурация XcodeGen
 ├── iosApp/
 │   ├── App.swift             # Точка входа (@main)
-│   ├── ContentView.swift     # Корень: TabView с 4 экранами + базовые UI-компоненты
+│   ├── ContentView.swift     # Корень: TabView с 5 экранами + базовые UI-компоненты
 │   ├── Views/
 │   │   ├── CalculatorsView.swift   # Экран «Расчеты» (этап 1 — реализован)
 │   │   ├── DiagnosticsView.swift   # Заглушка (этап 2)
 │   │   ├── EquipmentView.swift     # Заглушка (этап 3)
-│   │   └── JournalView.swift       # Заглушка (этап 4)
+│   │   ├── JournalView.swift       # Заглушка (этап 4)
+│   │   └── FeedbackView.swift      # Экран «Связь» — обратная связь
 │   ├── ViewModels/
 │   │   └── CalculatorsViewModel.swift # Вызывает KMP-калькуляторы
+│   ├── Services/
+│   │   └── FeedbackService.swift     # POST JSON на приёмник обратной связи
 │   └── Storage/
 │       ├── SwiftDataProvider.swift   # SwiftData стек (замена Room)
 │       ├── JournalRecord.swift       # Модель журнала (SwiftData)

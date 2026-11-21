@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -53,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import ru.oiltechclean.assistant.ui.screens.CalculatorsScreen
 import ru.oiltechclean.assistant.ui.screens.DiagnosticsScreen
 import ru.oiltechclean.assistant.ui.screens.EquipmentScreen
+import ru.oiltechclean.assistant.ui.screens.FeedbackScreen
 import ru.oiltechclean.assistant.ui.screens.JournalScreen
 import ru.oiltechclean.assistant.ui.theme.BrandGradient
 import ru.oiltechclean.assistant.ui.theme.BrandIndigo
@@ -71,7 +73,8 @@ private val tabs = listOf(
     TabItem("Расчеты", "Инженерные калькуляторы", Icons.Default.Calculate),
     TabItem("Диагностика", "ХАРГ и нормы ГОСТ", Icons.Default.Science),
     TabItem("Установки", "Паспорта и чек-листы", Icons.Default.Build),
-    TabItem("Журнал", "Замеры и протоколы", Icons.Default.Description)
+    TabItem("Журнал", "Замеры и протоколы", Icons.Default.Description),
+    TabItem("Связь", "Обратная связь и пожелания", Icons.Outlined.Forum)
 )
 
 class MainActivity : ComponentActivity() {
@@ -116,7 +119,8 @@ fun MainAppScaffold() {
                     0 -> CalculatorsScreen()
                     1 -> DiagnosticsScreen()
                     2 -> EquipmentScreen()
-                    else -> JournalScreen()
+                    3 -> JournalScreen()
+                    else -> FeedbackScreen()
                 }
             }
         }
@@ -178,18 +182,6 @@ private fun HeroHeader(tab: TabItem) {
                         text = "Сервис трансформаторного масла",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.75f)
-                    )
-                }
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White.copy(alpha = 0.16f)
-                ) {
-                    Text(
-                        text = "PRO",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
             }

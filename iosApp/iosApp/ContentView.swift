@@ -26,6 +26,12 @@ struct ContentView: View {
                     Label("Журнал", systemImage: "doc.text.fill")
                 }
                 .tag(3)
+
+            FeedbackView()
+                .tabItem {
+                    Label("Связь", systemImage: "bubble.left.and.bubble.right.fill")
+                }
+                .tag(4)
         }
         .tint(BrandColor.indigo)
         .preferredColorScheme(.light)

@@ -146,13 +146,6 @@ struct BrandHeroHeader: View {
                 }
 
                 Spacer(minLength: 8)
-
-                Text("PRO")
-                    .font(.caption2)
-                    .fontWeight(.bold)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(Color.white.opacity(0.16)))
             }
 
             HStack(spacing: 10) {
@@ -416,6 +409,62 @@ struct BrandLabeledTextField: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .stroke(BrandColor.line, lineWidth: 1)
                 )
+        }
+    }
+}
+
+/// Многострочное текстовое поле (сообщения, отзывы).
+struct BrandMultilineTextField: View {
+    let label: String
+    @Binding var text: String
+    var placeholder: String
+    var minHeight: CGFloat = 140
+
+    init(
+        _ label: String,
+        text: Binding<String>,
+        placeholder: String = "Опишите пожелание или проблему…",
+        minHeight: CGFloat = 140
+    ) {
+        self.label = label
+        self._text = text
+        self.placeholder = placeholder
+        self.minHeight = minHeight
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label.uppercased())
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundColor(BrandColor.slateLight)
+
+            ZStack(alignment: .topLeading) {
+                if text.isEmpty {
+                    Text(placeholder)
+                        .font(.subheadline)
+                        .foregroundColor(BrandColor.slateLight)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 14)
+                }
+
+                TextEditor(text: $text)
+                    .font(.subheadline)
+                    .foregroundColor(BrandColor.ink)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
+                    .frame(minHeight: minHeight)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.white)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(BrandColor.line, lineWidth: 1)
+            )
         }
     }
 }
