@@ -16,9 +16,9 @@ final class PDFReportGenerator {
         let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
         let format = UIGraphicsPDFRendererFormat()
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
-        let data = try renderer.pdfData { context in
+        let data = renderer.pdfData { context in
             context.beginPage()
-            guard let ctx = context.cgContext else { return }
+            let ctx = context.cgContext
             drawReport(ctx: ctx, record: record)
         }
         let fileName = "oiltech_report_\(record.id).pdf"
