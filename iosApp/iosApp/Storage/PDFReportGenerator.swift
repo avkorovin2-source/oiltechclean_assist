@@ -11,12 +11,13 @@ final class PDFReportGenerator {
     private static let contentWidth = pageWidth - padding * 2
 
     static func generateReport(record: JournalRecord) throws -> URL {
-        // A4 в points: 210 × 297 мм = 595.2 × 841.8 pt
-        let pageRect = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)
+        // A4 в points: размер страницы задаётся один раз при создании рендерера,
+        // поэтому beginPage() вызывается без аргументов.
+        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
         let format = UIGraphicsPDFRendererFormat()
         let renderer = UIGraphicsPDFRenderer(bounds: pageRect, format: format)
         let data = try renderer.pdfData { context in
-            context.beginPage(withBounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
+            context.beginPage()
             guard let ctx = context.cgContext else { return }
             drawReport(ctx: ctx, record: record)
         }
