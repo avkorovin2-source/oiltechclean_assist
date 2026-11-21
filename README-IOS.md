@@ -150,22 +150,21 @@ iOS-приложение нельзя скомпилировать на Windows 
 
 ### 2. Переменные окружения (секреты)
 
-В настройках приложения Codemagic (Environment variables) добавьте:
+Workflow `ios-debug` собирает приложение **без подписи** и не требует никаких секретов: JDK 17 и Xcode заданы прямо в `codemagic.yaml` (`environment: java: 17`).
 
-| Переменная | Назначение | Пример |
-|------------|------------|--------|
-| `APPLE_ID` | Ваш Apple ID (бесплатный) | `user@example.com` |
-| `TEAM_ID` | ID команды Apple (если есть) | `ABCD123456` |
-| `CODE_SIGN_IDENTITY` | Идентификатор подписи (для release) | `Apple Development` |
-| `PROVISIONING_PROFILE` | UUID профиля провижининга | `uuid-of-profile` |
+Для подписанной сборки (`ios-ipa`) сертификаты и профили загружаются не переменными, а через **Code signing identities**:
 
-Сертификаты `.p12`, `.p8`, профили `.mobileprovision` и пароли **НЕ коммитьте в репозиторий**. Передавайте только через зашифрованные переменные Codemagic.
+1. Codemagic → ваше приложение → Settings → **Code signing identities**.
+2. Загрузите сертификат `.p12` (с паролем) и профили `.mobileprovision`.
+3. Bundle ID в workflow — `ru.oiltechclean.assistant.iosApp` (его генерирует XcodeGen из `project.yml`).
+
+Сертификаты `.p12`, `.p8`, профили `.mobileprovision` и пароли **НЕ коммитьте в репозиторий**. Передавайте только через Codemagic.
 
 ### 3. Запуск сборки
 
-- Выберите workflow `ios-debug` для отладочной сборки.
-- Выберите workflow `ios-ipa` для сборки `.ipa` (требуется платный аккаунт Apple Developer).
-- Артефакты доступны после завершения билда на вкладке Artifacts.
+- Workflow `ios-debug` — отладочная сборка `.app` без подписи (артефакт: `iosApp/build/Build/Products/**/*.app`).
+- Workflow `ios-ipa` — подписанный `.ipa` (требуется платный Apple Developer; артефакт: `iosApp/build/ios/ipa/*.ipa`).
+- Shared-тесты JVM запускаются в `ios-debug` шагом `./gradlew :shared:jvmTest` из корня репозитория.
 
 ### 4. Локальный запуск тестов KMP (Windows/macOS/Linux)
 
@@ -213,8 +212,8 @@ Apple позволяет бесплатно устанавливать прил�
 1. Купите Apple Developer Program на [developer.apple.com](https://developer.apple.com).
 2. В Xcode → Settings → Accounts добавьте новый аккаунт Developer.
 3. Создайте App ID в [App Store Connect](https://appstoreconnect.apple.com).
-4. В Codemagic добавьте секреты: `CODE_SIGN_IDENTITY`, `PROVISIONING_PROFILE`, пароль от Apple ID (App-Specific Password для 2FA).
-5. Запустите workflow `ios-ipa` — соберется `.ipa`.
+4. В Codemagic → Settings → **Code signing identities** загрузите сертификат `.p12` и профиль `.mobileprovision` (для TestFlight — с типом App Store).
+5. Запустите workflow `ios-ipa` — соберётся `.ipa` в `iosApp/build/ios/ipa/`.
 6. Загрузите `.ipa` в App Store Connect → TestFlight.
 7. Пригласите тестировщиков по email.
 

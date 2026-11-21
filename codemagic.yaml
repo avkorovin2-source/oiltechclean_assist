@@ -1,34 +1,19 @@
 workflows:
+  # Отладочная сборка без подписи: .app уходит в артефакты,
+  # из него можно собрать .ipa для Sideloadly (см. README-IOS.md).
   ios-debug:
-    name: iOS Debug Build
+    name: iOS Debug Build (unsigned)
     max_build_duration: 60
     instance_type: mac_pro
     environment:
       xcode: latest
-      cocoapods: default
-      kotlin: 2.2.10
+      # JDK 17 нужен Gradle (wrapper 9.x) и Kotlin 2.2:
+      # Shared.framework собирается preBuild-фазой Xcode.
+      java: 17
     scripts:
-      - name: Set up environment
-        script: |
-          # Java 17 required for Gradle/Kotlin 2.2.10
-          if [ -d "/usr/local/lib/zulu-17" ]; then
-            export JAVA_HOME=/usr/local/lib/zulu-17
-            export PATH=$JAVA_HOME/bin:$PATH
-          fi
-          java -version
-
-      - name: Decrypt secrets (optional, from Codemagic variables)
-        script: |
-          # Ключи/сертификаты НЕ хранятся в репозитории.
-          # Передаются через Codemagic環境ные переменные (ENV).
-          echo "Проверка обязательных переменных CI..."
-          if [ -z "$APPLE_ID" ]; then echo "WARNING: APPLE_ID не задан"; fi
-
-      # Shared.framework собирает build-фаза Xcode (preBuildScript в project.yml):
-      # :shared:embedAndSignAppleFrameworkForXcode -> shared/build/xcode-frameworks/...
       - name: Install XcodeGen
         script: |
-          brew install xcodegen || true
+          brew install xcodegen || brew upgrade xcodegen || true
           xcodegen --version
 
       - name: Generate Xcode project
@@ -36,59 +21,73 @@ workflows:
           cd "$FCI_BUILD_DIR/iosApp"
           xcodegen generate
 
-      - name: Build iOS debug app
+      # Shared.framework собирает preBuildScript из project.yml:
+      # ./gradlew :shared:embedAndSignAppleFrameworkForXcode
+      # -> shared/build/xcode-frameworks/<Configuration>/<SDK>/Shared.framework
+      - name: Build iOS debug app (unsigned)
         script: |
           cd "$FCI_BUILD_DIR/iosApp"
-          xcodebuild -scheme iosApp -configuration Debug -sdk iphoneos -derivedDataPath ./build \
+          xcodebuild -project iosApp.xcodeproj -scheme iosApp \
+            -configuration Debug \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath ./build \
             CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Run shared unit tests (JVM, runs on macOS CI)
+      - name: Run shared unit tests (JVM)
         script: |
-          cd "$FCI_BUILD_DIR/.."
+          cd "$FCI_BUILD_DIR"
+          chmod +x ./gradlew
           ./gradlew :shared:jvmTest --no-configuration-cache
 
     artifacts:
-      - iosApp/build/**/*.app
-      - ../shared/build/reports/**/*
+      - iosApp/build/Build/Products/**/*.app
+      - shared/build/reports/tests/**/*
+
     publishing:
       email:
         notify: false
 
+  # Подписанная сборка .ipa. Требует настроенных сертификатов и профилей
+  # в Codemagic (Settings -> Code signing identities) и платного Apple Developer.
   ios-ipa:
     name: iOS Release .ipa
     max_build_duration: 60
     instance_type: mac_pro
     environment:
       xcode: latest
-      cocoapods: default
+      java: 17
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: ru.oiltechclean.assistant.iosApp
+      vars:
+        SCHEME: iosApp
     scripts:
-      # Shared.framework собирает build-фаза Xcode (preBuildScript в project.yml).
       - name: Install XcodeGen
         script: |
-          brew install xcodegen || true
+          brew install xcodegen || brew upgrade xcodegen || true
+          xcodegen --version
 
       - name: Generate Xcode project
         script: |
           cd "$FCI_BUILD_DIR/iosApp"
           xcodegen generate
 
+      # Shared.framework собирает preBuildScript из project.yml.
+      - name: Set up code signing
+        script: |
+          cd "$FCI_BUILD_DIR/iosApp"
+          xcode-project use-profiles
+
       - name: Build .ipa
         script: |
           cd "$FCI_BUILD_DIR/iosApp"
-          xcodebuild -scheme iosApp -configuration Release -sdk iphoneos \
-            -archivePath ./build/iosApp.xcarchive \
-            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROVISIONING_PROFILE" \
-            archive
-
-          xcodebuild -exportArchive \
-            -archivePath ./build/iosApp.xcarchive \
-            -exportOptionsPlist ./ExportOptions.plist \
-            -exportPath ./build/ipa
+          xcode-project build-ipa --project iosApp.xcodeproj --scheme "$SCHEME"
 
     artifacts:
-      - iosApp/build/ipa/**/*.ipa
+      - iosApp/build/ios/ipa/*.ipa
+
     publishing:
       email:
         notify: false
