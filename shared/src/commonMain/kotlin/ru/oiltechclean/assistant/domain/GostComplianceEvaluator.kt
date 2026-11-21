@@ -37,6 +37,16 @@ object GostComplianceEvaluator {
         /** Доля выполненных показателей, 0..1. */
         val passRatio: Float
             get() = if (evaluated.isEmpty()) 0f else passed.size.toFloat() / evaluated.size
+
+        /** Готовая строка «пройдено N из M» для iOS-интерфейса. */
+        val summaryText: String get() = "Пройдено ${passed.size} из ${evaluated.size}"
+
+        /** Несоответствия в виде готовых строк — без обращения к вложенным типам из Swift. */
+        val failedLines: List<String>
+            get() = failed.map { check ->
+                val actual = check.actual?.let { formatNumber(it) } ?: "—"
+                "${check.parameter}: $actual ${check.unit} (норма ${formatNumber(check.limit)} ${check.unit})"
+            }
     }
 
     fun evaluate(
@@ -85,6 +95,33 @@ object GostComplianceEvaluator {
             )
         )
         return ComplianceReport(voltageClass = standard.voltageClass, checks = checks)
+    }
+
+    /**
+     * Swift-дружественный вариант [evaluate]: все параметры не-null,
+     * отсутствие данных передаётся как [Double.NaN].
+     * Нужен потому, что Kotlin `Double?` экспортируется в Swift как `KotlinDouble?`.
+     */
+    fun evaluateValues(
+        standard: GostStandardRow,
+        breakdownVoltageKv: Double,
+        moisturePpm: Double,
+        gasContentPercent: Double,
+        acidNumber: Double,
+        tanDelta90C: Double
+    ): ComplianceReport = evaluate(
+        standard = standard,
+        breakdownVoltageKv = breakdownVoltageKv.takeUnless { it.isNaN() },
+        moisturePpm = moisturePpm.takeUnless { it.isNaN() },
+        gasContentPercent = gasContentPercent.takeUnless { it.isNaN() },
+        acidNumber = acidNumber.takeUnless { it.isNaN() },
+        tanDelta90C = tanDelta90C.takeUnless { it.isNaN() }
+    )
+
+    private fun formatNumber(value: Double): String {
+        val rounded = kotlin.math.round(value * 100.0) / 100.0
+        val asInt = rounded.toInt()
+        return if (rounded == asInt.toDouble()) asInt.toString() else rounded.toString()
     }
 
     private fun check(

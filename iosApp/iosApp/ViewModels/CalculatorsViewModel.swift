@@ -2,7 +2,7 @@ import SwiftUI
 import Shared
 
 @MainActor
-class CalculatorsViewModel: ObservableObject {
+final class CalculatorsViewModel: ObservableObject {
 
     // MARK: - Входные данные (циклы УВСМ)
     @Published var uvsmVolume = "25.0"
@@ -44,7 +44,7 @@ class CalculatorsViewModel: ObservableObject {
 
     // MARK: - Давление
     @Published var pressureMmHg = "1.0"
-    @Published var pressureResults: [String: String] = [:]
+    @Published var pressureResults: [(unit: String, value: String)] = []
 
     // MARK: - Точка росы
     @Published var dewMode = 0
@@ -64,22 +64,19 @@ class CalculatorsViewModel: ObservableObject {
     // MARK: - Выбранный таб калькулятора (0..5)
     @Published var selectedTab = 0
 
-    private let calculators = EngineeringCalculators()
-    private let catalog = TransformerCatalog()
+    private let calculators = EngineeringCalculators.shared
+    private let catalog = TransformerCatalog.shared
+
 
     // MARK: - Расчеты
 
     func calculateUvsm() {
-        let volume = Double(uvsmVolume.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let mStart = Double(uvsmMStart.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let mTarget = Double(uvsmMTarget.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let capacity = Double(uvsmCapacity.replacingOccurrences(of: ",", with: ".")) ?? 4.0
-
         let result = calculators.calculateUvsmProcessing(
-            oilVolumeM3: volume,
-            initialMoisturePpm: mStart,
-            targetMoisturePpm: mTarget,
-            unitCapacityM3H: capacity
+            oilVolumeM3: number(uvsmVolume) ?? 0.0,
+            initialMoisturePpm: number(uvsmMStart) ?? 0.0,
+            targetMoisturePpm: number(uvsmMTarget) ?? 0.0,
+            unitCapacityM3H: number(uvsmCapacity) ?? 4.0,
+            passEfficiency: 0.65
         )
 
         uvsmCycles = "\(result.recommendedCycles)"
@@ -88,29 +85,20 @@ class CalculatorsViewModel: ObservableObject {
     }
 
     func calculateSorbent() {
-        let oilMass = Double(sorbentOilMass.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let initialAcid = Double(sorbentInitialAcid.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let targetAcid = Double(sorbentTargetAcid.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-
         let mass = calculators.calculateSorbentMassKg(
-            oilMassTons: oilMass,
-            initialAcidNumber: initialAcid,
-            targetAcidNumber: targetAcid,
+            oilMassTons: number(sorbentOilMass) ?? 0.0,
+            initialAcidNumber: number(sorbentInitialAcid) ?? 0.0,
+            targetAcidNumber: number(sorbentTargetAcid) ?? 0.0,
             isZeoliteDryingOnly: sorbentZeoliteOnly
         )
-
         sorbentMass = String(format: "%.2f кг", mass)
     }
 
     func calculateVacuum() {
-        let tank = Double(vacuumTankVolume.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let speed = Double(vacuumPumpSpeed.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let pressure = Double(vacuumTargetPressure.replacingOccurrences(of: ",", with: ".")) ?? 133.0
-
         let minutes = calculators.calculateVacuumTimeMinutes(
-            tankFreeVolumeM3: tank,
-            pumpSpeedM3H: speed,
-            targetPressurePa: pressure
+            tankFreeVolumeM3: number(vacuumTankVolume) ?? 0.0,
+            pumpSpeedM3H: number(vacuumPumpSpeed) ?? 30.0,
+            targetPressurePa: number(vacuumTargetPressure) ?? 133.0
         )
 
         vacuumMinutes = String(format: "%.0f мин", minutes)
@@ -118,61 +106,54 @@ class CalculatorsViewModel: ObservableObject {
     }
 
     func calculateTanDelta() {
-        let measured = Double(tanMeasured.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let tempMeas = Double(tempMeasured.replacingOccurrences(of: ",", with: ".")) ?? 20.0
-        let tempTarg = Double(tempTarget.replacingOccurrences(of: ",", with: ".")) ?? 90.0
-
         let converted = calculators.convertTanDelta(
-            measuredTanDelta: measured,
-            measuredTempC: tempMeas,
-            targetTempC: tempTarg
+            measuredTanDelta: number(tanMeasured) ?? 0.0,
+            measuredTempC: number(tempMeasured) ?? 20.0,
+            targetTempC: number(tempTarget) ?? 90.0
         )
-
-        tanConverted = String(format: "%.2f %", converted)
+        tanConverted = String(format: "%.2f %%", converted)
     }
 
+    /// Пересчёт давления выполняется на стороне Swift:
+    /// Kotlin возвращает `Map<String, Double>`, который неудобно читать через интероп.
     func convertPressure() {
-        let mmHg = Double(pressureMmHg.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let map = calculators.convertPressureFromMmHg(mmHg: mmHg)
-        pressureResults = map.mapValues { String(format: "%.4f", $0) }
+        let mmHg = number(pressureMmHg) ?? 0.0
+        let pa = mmHg * 133.322
+        pressureResults = [
+            ("Па (Pa)", String(format: "%.4f", pa)),
+            ("мбар (mbar)", String(format: "%.4f", pa / 100.0)),
+            ("кПа (kPa)", String(format: "%.4f", pa / 1000.0)),
+            ("атм (atm)", String(format: "%.6f", mmHg / 760.0))
+        ]
     }
 
     func calculateDewPoint() {
         if dewMode == 0 {
-            let ppm = Double(dewMoisturePpm.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-            let pa = Double(dewPressurePa.replacingOccurrences(of: ",", with: ".")) ?? 101325.0
-            let dp = calculators.calculateDewPointC(moisturePpm: ppm, pressurePa: pa)
-            if dp.isNaN {
-                dewResult = "—"
-            } else {
-                dewResult = String(format: "%.1f °C", dp)
-            }
+            let dewPoint = calculators.calculateDewPointC(
+                moisturePpm: number(dewMoisturePpm) ?? 0.0,
+                pressurePa: number(dewPressurePa) ?? 101325.0
+            )
+            dewResult = dewPoint.isNaN ? "—" : String(format: "%.1f °C", dewPoint)
         } else {
-            let dp = Double(dewPointC.replacingOccurrences(of: ",", with: ".")) ?? -40.0
-            let pa = Double(dewPressurePa.replacingOccurrences(of: ",", with: ".")) ?? 101325.0
-            let ppm = calculators.moistureFromDewPointPpm(dewPointC: dp, pressurePa: pa)
+            let ppm = calculators.moistureFromDewPointPpm(
+                dewPointC: number(dewPointC) ?? -40.0,
+                pressurePa: number(dewPressurePa) ?? 101325.0
+            )
             dewResult = String(format: "%.1f ppm", ppm)
         }
     }
 
     func calculateFlashPoint() {
-        let initial = Double(flashInitial.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let fraction = Double(flashLightFraction.replacingOccurrences(of: ",", with: ".")) ?? 0.0
-        let voltageClass = flashVoltageClassIndex == 0 ? 35 : 110
-
         let estimated = calculators.estimateFlashPointC(
-            initialFlashPointC: initial,
-            lightFractionPercent: fraction
+            initialFlashPointC: number(flashInitial) ?? 0.0,
+            lightFractionPercent: number(flashLightFraction) ?? 0.0
         )
-        let limit = calculators.flashPointLimitC(voltageClassKv: Int32(voltageClass))
+        let voltageClass: Int32 = flashVoltageClassIndex == 0 ? 35 : 110
+        let limit = calculators.flashPointLimitC(voltageClassKv: voltageClass)
 
-        if estimated.isNaN {
-            flashEstimated = "—"
-        } else {
-            flashEstimated = String(format: "%.0f °C", estimated)
-        }
+        flashEstimated = estimated.isNaN ? "—" : String(format: "%.0f °C", estimated)
         flashLimit = String(format: "не ниже %.0f °C", limit)
-        flashPassing = !estimated.isNaN() && estimated >= limit
+        flashPassing = !estimated.isNaN && estimated >= limit
     }
 
     // MARK: - Справочник трансформаторов
@@ -187,6 +168,16 @@ class CalculatorsViewModel: ObservableObject {
         uvsmSelectedTransformerLabel = label
     }
 
+    // MARK: - Вспомогательное
+
+    private func number(_ text: String) -> Double? {
+        let normalized = text
+            .replacingOccurrences(of: ",", with: ".")
+            .trimmingCharacters(in: .whitespaces)
+        guard !normalized.isEmpty else { return nil }
+        return Double(normalized)
+    }
+
     private func formatVolume(_ value: Double) -> String {
         if value == Double(Int(value)) {
             return String(Int(value))
@@ -194,3 +185,4 @@ class CalculatorsViewModel: ObservableObject {
         return String(format: "%.1f", value)
     }
 }
+

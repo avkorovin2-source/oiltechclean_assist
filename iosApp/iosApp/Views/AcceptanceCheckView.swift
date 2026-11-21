@@ -4,11 +4,12 @@ import Shared
 
 struct AcceptanceCheckView: View {
     @Environment(\.modelContext) private var context
-    @StateObject private var vm: AcceptanceCheckViewModel
-    @Environment(\.dismiss) private var dismiss
+    @StateObject private var vm = AcceptanceCheckViewModel()
 
-    init() {
-        _vm = StateObject(wrappedValue: AcceptanceCheckViewModel(context: ModelContext(try! ModelContainer(for: AcceptanceCheck.self))))
+    let onBack: () -> Void
+
+    init(onBack: @escaping () -> Void = {}) {
+        self.onBack = onBack
     }
 
     var body: some View {
@@ -34,7 +35,7 @@ struct AcceptanceCheckView: View {
                             .frame(maxWidth: .infinity)
                     }
 
-                    ForEach(OilAcceptanceChecklist.groups, id: \.title) { group in
+                    ForEach(OilAcceptanceChecklist.shared.groups, id: \.title) { group in
                         SectionCard {
                             SectionHeader(title: group.title)
                             ForEach(group.items, id: \.id) { item in
@@ -53,9 +54,10 @@ struct AcceptanceCheckView: View {
             }
             .navigationTitle("Приёмка масла")
             .navigationBarTitleDisplayMode(.inline)
+            .task { vm.attach(context) }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Назад") { dismiss() }
+                    Button("Назад") { onBack() }
                 }
             }
         }
@@ -66,6 +68,12 @@ struct AcceptanceCheckView: View {
     struct LabeledTextField: View {
         let label: String
         @Binding var text: String
+
+        init(_ label: String, text: Binding<String>) {
+            self.label = label
+            self._text = text
+        }
+
         var body: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label).font(.caption).foregroundColor(.secondary)
@@ -140,7 +148,7 @@ struct AcceptanceCheckView: View {
                     Text(check.objectName)
                         .font(.body)
                         .fontWeight(.semibold)
-                    Text("\(formattedDate(check.checkedAt)) · отмечено \(checkedCount) из \(OilAcceptanceChecklist.totalItems)")
+                    Text("\(formattedDate(check.checkedAt)) · отмечено \(checkedCount) из \(OilAcceptanceChecklist.shared.totalItems)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(verdictText)

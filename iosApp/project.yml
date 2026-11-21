@@ -12,11 +12,31 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: iosApp
-    dependencies:
-      - framework: ../shared/build/xcode-frameworks/Shared.framework
-        embed: true
-        link: true
+    # Shared.framework собирается Gradle-ом прямо в build-фазе Xcode.
+    # Путь .gradle: shared/build/xcode-frameworks/<Configuration>/<SDK>/Shared.framework
+    preBuildScripts:
+      - name: Build Shared KMP framework
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          cd "$SRCROOT/.."
+          chmod +x ./gradlew
+          ./gradlew :shared:embedAndSignAppleFrameworkForXcode
     settings:
-      INFOPLIST_KEY:
-        NSUIApplicationSupportsMultipleScenes: false
-        CFBundleDisplayName: OilTechClean Assistent
+      base:
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        GENERATE_INFOPLIST_FILE: YES
+        FRAMEWORK_SEARCH_PATHS:
+          - $(inherited)
+          - $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
+        # Фреймворк статический (isStatic = true) — только линковка, без embed.
+        OTHER_LDFLAGS:
+          - $(inherited)
+          - -framework
+          - Shared
+        INFOPLIST_KEY_NSUIApplicationSupportsMultipleScenes: NO
+        INFOPLIST_KEY_CFBundleDisplayName: OilTechClean Assistent
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"

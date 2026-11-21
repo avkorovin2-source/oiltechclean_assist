@@ -244,3 +244,38 @@ Apple позволяет бесплатно устанавливать прил�
 - `.gitignore` исключает `*.p12`, `*.p8`, `*.cer`, `*.mobileprovision`, `.env`, `*.ipa`, `*.xcarchive`, `DerivedData`.
 - Все секреты передаются через CI-переменные Codemagic.
 - `keystore.properties` (Android) и все сертификаты iOS не коммитятся.
+
+## Сборка iOS: актуальная схема интеграции с KMP
+
+`Shared.framework` не подключается по «магическому» пути. Всё делает `iosApp/project.yml` (XcodeGen):
+
+1. **preBuild-фаза** запускает `./gradlew :shared:embedAndSignAppleFrameworkForXcode` — Gradle собирает фреймворк под текущие `CONFIGURATION`/`SDK_NAME` и кладёт его в `shared/build/xcode-frameworks/<Configuration>/<SDK>/Shared.framework`.
+2. `FRAMEWORK_SEARCH_PATHS` указывает на этот каталог, `OTHER_LDFLAGS` содержит `-framework Shared`.
+3. `isStatic = true` — фреймворк статический, поэтому он только линкуется, но не встраивается в бандл (`embed` не нужен).
+4. `ENABLE_USER_SCRIPT_SANDBOXING = NO` — иначе Xcode 15+ запрещает скрипту писать в `../shared/build`.
+5. `GENERATE_INFOPLIST_FILE = YES` — отдельного `Info.plist` в проекте нет.
+
+Ручная сборка на Mac:
+
+```bash
+cd iosApp
+xcodegen generate
+open iosApp.xcodeproj
+```
+
+В CI сборка идёт без подписи (`CODE_SIGN_IDENTITY="" CODE_SIGNING_ALLOWED=NO`), а `.ipa` пакуется вручную (`Payload/` + `zip`) — это позволяет ставить приложение через Sideloadly.
+
+### Swift-дружественный API модуля `shared`
+
+Kotlin-`object` в Swift доступен только через `Xxx.shared`, а примитивы внутри коллекций боксятся (`Map<String, Double>` → `[String: KotlinDouble]`, `List<Pair<..>>` → `KotlinPair`). Чтобы iOS-код оставался простым, в `shared` добавлены тонкие адаптеры:
+
+| Kotlin | Назначение |
+|---|---|
+| `OilAcceptanceChecklist.isApprovedList(checkedIds: List<String>)` | вердикт чек-листа без `Kotlin Set` |
+| `OilAcceptanceChecklist.missingCriticalCount(checkedIds: List<String>)` | число неотмеченных критичных пунктов |
+| `GostComplianceEvaluator.evaluateValues(...)` | оценка по ГОСТ без `KotlinDouble?` (нет данных передаётся как `Double.NaN`) |
+| `ComplianceReport.summaryText` / `.failedLines` | готовые строки для UI без доступа к вложенным типам |
+| `OfflineCatalogRepository.troubleshootingRows(unit)` | `List<Pair>` → `[TroubleshootingRow]` (`problem` / `solution`) |
+| `OfflineCatalogRepository.unitSummary(unit)` | описание установки (имя `description` конфликтует с `NSObject.description`) |
+
+Адаптеры покрыты тестами в `shared/src/commonTest` (`OilAcceptanceChecklistTest`, `GostComplianceTest`, `OfflineCatalogRepositoryTest`) и проверяются на любой ОС через `./gradlew :shared:jvmTest`.

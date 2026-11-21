@@ -42,3 +42,7 @@ keystore.properties
 !/.env.example
 /google-services.json
 /GoogleService-Info.plist
+
+# Локальные артефакты ассистентов
+/.continue/
+/.qoder/

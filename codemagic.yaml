@@ -24,13 +24,8 @@ workflows:
           echo "Проверка обязательных переменных CI..."
           if [ -z "$APPLE_ID" ]; then echo "WARNING: APPLE_ID не задан"; fi
 
-      - name: Build shared KMP framework for iOS
-        script: |
-          cd "$FCI_BUILD_DIR/.."
-          ./gradlew :shared:packForXcode -Pkotlin.native.cocoapods.targets=iosArm64,iosSimulatorArm64 \
-            -Pkotlin.native.disableKotlinFrameworkPathCheck=true \
-            --no-configuration-cache
-
+      # Shared.framework собирает build-фаза Xcode (preBuildScript в project.yml):
+      # :shared:embedAndSignAppleFrameworkForXcode -> shared/build/xcode-frameworks/...
       - name: Install XcodeGen
         script: |
           brew install xcodegen || true
@@ -68,12 +63,7 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Build shared KMP framework for iOS (release)
-        script: |
-          cd "$FCI_BUILD_DIR/.."
-          ./gradlew :shared:packForXcode -Pkotlin.native.cocoapods.targets=iosArm64 \
-            --no-configuration-cache
-
+      # Shared.framework собирает build-фаза Xcode (preBuildScript в project.yml).
       - name: Install XcodeGen
         script: |
           brew install xcodegen || true

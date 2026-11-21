@@ -2,6 +2,7 @@ package ru.oiltechclean.assistant.data
 
 import ru.oiltechclean.assistant.model.EquipmentUnit
 import ru.oiltechclean.assistant.model.GostStandardRow
+import ru.oiltechclean.assistant.model.TroubleshootingRow
 
 object OfflineCatalogRepository {
 
@@ -93,4 +94,21 @@ object OfflineCatalogRepository {
         GostStandardRow("330 – 500 кВ", 65.0, 10.0, 0.5, 0.03, 5.0),
         GostStandardRow("750 кВ", 70.0, 8.0, 0.3, 0.02, 3.0)
     )
+
+    /**
+     * Swift-дружественное представление [EquipmentUnit.troubleshooting]:
+     * список плоских пар вместо `List<Pair<String, String>>`.
+     */
+    /**
+     * Swift-дружественное представление [EquipmentUnit.troubleshooting]:
+     * список плоских пар вместо `List<Pair<String, String>>`.
+     */
+    fun troubleshootingRows(unit: EquipmentUnit): List<TroubleshootingRow> =
+        unit.troubleshooting.map { TroubleshootingRow(problem = it.first, solution = it.second) }
+
+    /**
+     * Описание установки для iOS. Имя `description` конфликтует с `NSObject.description`,
+     * поэтому из Swift оно читается через этот метод.
+     */
+    fun unitSummary(unit: EquipmentUnit): String = unit.description
 }

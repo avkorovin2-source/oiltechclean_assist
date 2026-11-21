@@ -1,4 +1,4 @@
-import SwiftUI
+﻿import SwiftUI
 import Shared
 
 struct CalculatorsView: View {
@@ -8,13 +8,13 @@ struct CalculatorsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    Picker("Расчет", selection: $vm.selectedTab) {
-                        Text("Циклы").tag(0)
-                        Text("Сорбент").tag(1)
-                        Text("Вакуум").tag(2)
-                        Text("tg δ").tag(3)
-                        Text("Точка росы").tag(4)
-                        Text("Вспышка").tag(5)
+                    Picker("Р Р°СЃС‡РµС‚", selection: $vm.selectedTab) {
+                        Text("Р¦РёРєР»С‹").tag(0)
+                        Text("РЎРѕСЂР±РµРЅС‚").tag(1)
+                        Text("Р’Р°РєСѓСѓРј").tag(2)
+                        Text("tg Оґ").tag(3)
+                        Text("РўРѕС‡РєР° СЂРѕСЃС‹").tag(4)
+                        Text("Р’СЃРїС‹С€РєР°").tag(5)
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
@@ -30,22 +30,22 @@ struct CalculatorsView: View {
                 }
                 .padding(.vertical, 8)
             }
-            .navigationTitle("Расчеты")
+            .navigationTitle("Р Р°СЃС‡РµС‚С‹")
             .navigationBarTitleDisplayMode(.large)
         }
     }
 
-    // MARK: - Циклы и время обработки (УВСМ)
+    // MARK: - Р¦РёРєР»С‹ Рё РІСЂРµРјСЏ РѕР±СЂР°Р±РѕС‚РєРё (РЈР’РЎРњ)
 
     struct UvsmCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Циклы и время обработки",
-                              subtitle: "УВСМ: вакуумная сушка и дегазация")
+                SectionHeader(title: "Р¦РёРєР»С‹ Рё РІСЂРµРјСЏ РѕР±СЂР°Р±РѕС‚РєРё",
+                              subtitle: "РЈР’РЎРњ: РІР°РєСѓСѓРјРЅР°СЏ СЃСѓС€РєР° Рё РґРµРіР°Р·Р°С†РёСЏ")
 
-                Picker("Тип трансформатора", selection: $vm.uvsmSelectedTransformerLabel) {
+                Picker("РўРёРї С‚СЂР°РЅСЃС„РѕСЂРјР°С‚РѕСЂР°", selection: $vm.uvsmSelectedTransformerLabel) {
                     ForEach(vm.transformerOptions, id: \.self) { Text($0) }
                 }
                 .pickerStyle(.menu)
@@ -53,168 +53,168 @@ struct CalculatorsView: View {
                     vm.selectTransformer(by: newValue)
                 }
 
-                NumberField("Объем масла в баке", value: $vm.uvsmVolume, suffix: "м³")
-                NumberField("Начальное влагосодержание", value: $vm.uvsmMStart, suffix: "ppm")
-                NumberField("Целевое влагосодержание", value: $vm.uvsmMTarget, suffix: "ppm")
-                NumberField("Производительность установки", value: $vm.uvsmCapacity, suffix: "м³/ч")
+                NumberField("РћР±СЉРµРј РјР°СЃР»Р° РІ Р±Р°РєРµ", value: $vm.uvsmVolume, suffix: "РјВі")
+                NumberField("РќР°С‡Р°Р»СЊРЅРѕРµ РІР»Р°РіРѕСЃРѕРґРµСЂР¶Р°РЅРёРµ", value: $vm.uvsmMStart, suffix: "ppm")
+                NumberField("Р¦РµР»РµРІРѕРµ РІР»Р°РіРѕСЃРѕРґРµСЂР¶Р°РЅРёРµ", value: $vm.uvsmMTarget, suffix: "ppm")
+                NumberField("РџСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚СЊ СѓСЃС‚Р°РЅРѕРІРєРё", value: $vm.uvsmCapacity, suffix: "РјВі/С‡")
 
                 HairLine()
 
-                Button("Рассчитать") { vm.calculateUvsm() }
+                Button("Р Р°СЃСЃС‡РёС‚Р°С‚СЊ") { vm.calculateUvsm() }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
 
                 HStack(spacing: 10) {
-                    ResultTile(label: "Циклов", value: vm.uvsmCycles, unit: nil)
-                    ResultTile(label: "Время", value: vm.uvsmHours, unit: nil)
+                    ResultTile(label: "Р¦РёРєР»РѕРІ", value: vm.uvsmCycles, unit: nil)
+                    ResultTile(label: "Р’СЂРµРјСЏ", value: vm.uvsmHours, unit: nil)
                 }
-                SpecRow(label: "Суммарный объем прокачки", value: vm.uvsmTotalVolume)
+                SpecRow(label: "РЎСѓРјРјР°СЂРЅС‹Р№ РѕР±СЉРµРј РїСЂРѕРєР°С‡РєРё", value: vm.uvsmTotalVolume)
             }
         }
     }
 
-    // MARK: - Сорбент
+    // MARK: - РЎРѕСЂР±РµРЅС‚
 
     struct SorbentCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Масса сорбента",
-                              subtitle: "Расчет адсорбента для регенерации масла")
+                SectionHeader(title: "РњР°СЃСЃР° СЃРѕСЂР±РµРЅС‚Р°",
+                              subtitle: "Р Р°СЃС‡РµС‚ Р°РґСЃРѕСЂР±РµРЅС‚Р° РґР»СЏ СЂРµРіРµРЅРµСЂР°С†РёРё РјР°СЃР»Р°")
 
-                Toggle("Только термовакуумная сушка (цеолит)", isOn: $vm.sorbentZeoliteOnly)
-                NumberField("Масса масла", value: $vm.sorbentOilMass, suffix: "тонн")
-                NumberField("Кислотное число ДО", value: $vm.sorbentInitialAcid, suffix: "мг КОН/г")
-                NumberField("Кислотное число ПОСЛЕ", value: $vm.sorbentTargetAcid, suffix: "мг КОН/г")
+                Toggle("РўРѕР»СЊРєРѕ С‚РµСЂРјРѕРІР°РєСѓСѓРјРЅР°СЏ СЃСѓС€РєР° (С†РµРѕР»РёС‚)", isOn: $vm.sorbentZeoliteOnly)
+                NumberField("РњР°СЃСЃР° РјР°СЃР»Р°", value: $vm.sorbentOilMass, suffix: "С‚РѕРЅРЅ")
+                NumberField("РљРёСЃР»РѕС‚РЅРѕРµ С‡РёСЃР»Рѕ Р”Рћ", value: $vm.sorbentInitialAcid, suffix: "РјРі РљРћРќ/Рі")
+                NumberField("РљРёСЃР»РѕС‚РЅРѕРµ С‡РёСЃР»Рѕ РџРћРЎР›Р•", value: $vm.sorbentTargetAcid, suffix: "РјРі РљРћРќ/Рі")
 
                 HairLine()
 
-                Button("Рассчитать") { vm.calculateSorbent() }
+                Button("Р Р°СЃСЃС‡РёС‚Р°С‚СЊ") { vm.calculateSorbent() }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
 
-                ResultTile(label: "Сорбента", value: vm.sorbentMass, unit: nil)
+                ResultTile(label: "РЎРѕСЂР±РµРЅС‚Р°", value: vm.sorbentMass, unit: nil)
             }
         }
     }
 
-    // MARK: - Вакуум
+    // MARK: - Р’Р°РєСѓСѓРј
 
     struct VacuumCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Время вакуумирования",
-                              subtitle: "Расчет времени накачки вакуума")
+                SectionHeader(title: "Р’СЂРµРјСЏ РІР°РєСѓСѓРјРёСЂРѕРІР°РЅРёСЏ",
+                              subtitle: "Р Р°СЃС‡РµС‚ РІСЂРµРјРµРЅРё РЅР°РєР°С‡РєРё РІР°РєСѓСѓРјР°")
 
-                NumberField("Объем бака", value: $vm.vacuumTankVolume, suffix: "м³")
-                NumberField("Производительность насоса", value: $vm.vacuumPumpSpeed, suffix: "м³/ч")
-                NumberField("Целевое давление", value: $vm.vacuumTargetPressure, suffix: "Па")
+                NumberField("РћР±СЉРµРј Р±Р°РєР°", value: $vm.vacuumTankVolume, suffix: "РјВі")
+                NumberField("РџСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕСЃС‚СЊ РЅР°СЃРѕСЃР°", value: $vm.vacuumPumpSpeed, suffix: "РјВі/С‡")
+                NumberField("Р¦РµР»РµРІРѕРµ РґР°РІР»РµРЅРёРµ", value: $vm.vacuumTargetPressure, suffix: "РџР°")
 
                 HairLine()
 
-                Button("Рассчитать") { vm.calculateVacuum() }
+                Button("Р Р°СЃСЃС‡РёС‚Р°С‚СЊ") { vm.calculateVacuum() }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
 
                 HStack(spacing: 10) {
-                    ResultTile(label: "Минут", value: vm.vacuumMinutes, unit: nil)
-                    ResultTile(label: "Часов", value: vm.vacuumHours, unit: nil)
+                    ResultTile(label: "РњРёРЅСѓС‚", value: vm.vacuumMinutes, unit: nil)
+                    ResultTile(label: "Р§Р°СЃРѕРІ", value: vm.vacuumHours, unit: nil)
                 }
             }
         }
     }
 
-    // MARK: - tg δ
+    // MARK: - tg Оґ
 
     struct TanDeltaCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Температурная коррекция tg δ",
-                              subtitle: "Приведение к 90 °C")
+                SectionHeader(title: "РўРµРјРїРµСЂР°С‚СѓСЂРЅР°СЏ РєРѕСЂСЂРµРєС†РёСЏ tg Оґ",
+                              subtitle: "РџСЂРёРІРµРґРµРЅРёРµ Рє 90 В°C")
 
-                NumberField("Измеренный tg δ", value: $vm.tanMeasured, suffix: "%")
-                NumberField("Температура измерения", value: $vm.tempMeasured, suffix: "°C")
-                NumberField("Привести к температуре", value: $vm.tempTarget, suffix: "°C")
+                NumberField("РР·РјРµСЂРµРЅРЅС‹Р№ tg Оґ", value: $vm.tanMeasured, suffix: "%")
+                NumberField("РўРµРјРїРµСЂР°С‚СѓСЂР° РёР·РјРµСЂРµРЅРёСЏ", value: $vm.tempMeasured, suffix: "В°C")
+                NumberField("РџСЂРёРІРµСЃС‚Рё Рє С‚РµРјРїРµСЂР°С‚СѓСЂРµ", value: $vm.tempTarget, suffix: "В°C")
 
                 HairLine()
 
-                ResultTile(label: "Приведенный tg δ", value: vm.tanConverted, unit: nil)
+                ResultTile(label: "РџСЂРёРІРµРґРµРЅРЅС‹Р№ tg Оґ", value: vm.tanConverted, unit: nil)
             }
         }
     }
 
-    // MARK: - Точка росы
+    // MARK: - РўРѕС‡РєР° СЂРѕСЃС‹
 
     struct DewPointCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Точка росы",
-                              subtitle: "Связь влагосодержания газа и точки росы")
+                SectionHeader(title: "РўРѕС‡РєР° СЂРѕСЃС‹",
+                              subtitle: "РЎРІСЏР·СЊ РІР»Р°РіРѕСЃРѕРґРµСЂР¶Р°РЅРёСЏ РіР°Р·Р° Рё С‚РѕС‡РєРё СЂРѕСЃС‹")
 
-                Picker("Режим", selection: $vm.dewMode) {
-                    Text("Влага → точка росы").tag(0)
-                    Text("Точка росы → влага").tag(1)
+                Picker("Р РµР¶РёРј", selection: $vm.dewMode) {
+                    Text("Р’Р»Р°РіР° в†’ С‚РѕС‡РєР° СЂРѕСЃС‹").tag(0)
+                    Text("РўРѕС‡РєР° СЂРѕСЃС‹ в†’ РІР»Р°РіР°").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
 
                 if vm.dewMode == 0 {
-                    NumberField("Влагосодержание газа", value: $vm.dewMoisturePpm, suffix: "ppm")
-                    NumberField("Давление в системе", value: $vm.dewPressurePa, suffix: "Па")
+                    NumberField("Р’Р»Р°РіРѕСЃРѕРґРµСЂР¶Р°РЅРёРµ РіР°Р·Р°", value: $vm.dewMoisturePpm, suffix: "ppm")
+                    NumberField("Р”Р°РІР»РµРЅРёРµ РІ СЃРёСЃС‚РµРјРµ", value: $vm.dewPressurePa, suffix: "РџР°")
                 } else {
-                    NumberField("Точка росы", value: $vm.dewPointC, suffix: "°C")
-                    NumberField("Давление в системе", value: $vm.dewPressurePa, suffix: "Па")
+                    NumberField("РўРѕС‡РєР° СЂРѕСЃС‹", value: $vm.dewPointC, suffix: "В°C")
+                    NumberField("Р”Р°РІР»РµРЅРёРµ РІ СЃРёСЃС‚РµРјРµ", value: $vm.dewPressurePa, suffix: "РџР°")
                 }
 
                 HairLine()
 
-                ResultTile(label: vm.dewMode == 0 ? "Точка росы" : "Влагосодержание газа",
+                ResultTile(label: vm.dewMode == 0 ? "РўРѕС‡РєР° СЂРѕСЃС‹" : "Р’Р»Р°РіРѕСЃРѕРґРµСЂР¶Р°РЅРёРµ РіР°Р·Р°",
                            value: vm.dewResult, unit: nil)
 
-                SpecRow(label: "Ориентир для вакуумной сушки", value: "точка росы ≤ −40 °C")
+                SpecRow(label: "РћСЂРёРµРЅС‚РёСЂ РґР»СЏ РІР°РєСѓСѓРјРЅРѕР№ СЃСѓС€РєРё", value: "С‚РѕС‡РєР° СЂРѕСЃС‹ в‰¤ в€’40 В°C")
             }
         }
     }
 
-    // MARK: - Вспышка
+    // MARK: - Р’СЃРїС‹С€РєР°
 
     struct FlashPointCard: View {
         @ObservedObject var vm: CalculatorsViewModel
 
         var body: some View {
             SectionCard {
-                SectionHeader(title: "Температура вспышки",
-                              subtitle: "Контроль накопления легких фракций")
+                SectionHeader(title: "РўРµРјРїРµСЂР°С‚СѓСЂР° РІСЃРїС‹С€РєРё",
+                              subtitle: "РљРѕРЅС‚СЂРѕР»СЊ РЅР°РєРѕРїР»РµРЅРёСЏ Р»РµРіРєРёС… С„СЂР°РєС†РёР№")
 
-                Picker("Класс напряжения", selection: $vm.flashVoltageClassIndex) {
-                    Text("до 35 кВ").tag(0)
-                    Text("110 кВ и выше").tag(1)
+                Picker("РљР»Р°СЃСЃ РЅР°РїСЂСЏР¶РµРЅРёСЏ", selection: $vm.flashVoltageClassIndex) {
+                    Text("РґРѕ 35 РєР’").tag(0)
+                    Text("110 РєР’ Рё РІС‹С€Рµ").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
 
-                NumberField("Вспышка свежего масла (паспорт)", value: $vm.flashInitial, suffix: "°C")
-                NumberField("Доля легких фракций", value: $vm.flashLightFraction, suffix: "%")
+                NumberField("Р’СЃРїС‹С€РєР° СЃРІРµР¶РµРіРѕ РјР°СЃР»Р° (РїР°СЃРїРѕСЂС‚)", value: $vm.flashInitial, suffix: "В°C")
+                NumberField("Р”РѕР»СЏ Р»РµРіРєРёС… С„СЂР°РєС†РёР№", value: $vm.flashLightFraction, suffix: "%")
 
                 HairLine()
 
-                ResultTile(label: "Расчетная вспышка", value: vm.flashEstimated, unit: nil)
-                SpecRow(label: "Норматив для класса", value: vm.flashLimit)
-                SpecRow(label: "Оценка",
-                        value: vm.flashPassing ? "соответствует" : "ниже норматива")
+                ResultTile(label: "Р Р°СЃС‡РµС‚РЅР°СЏ РІСЃРїС‹С€РєР°", value: vm.flashEstimated, unit: nil)
+                SpecRow(label: "РќРѕСЂРјР°С‚РёРІ РґР»СЏ РєР»Р°СЃСЃР°", value: vm.flashLimit)
+                SpecRow(label: "РћС†РµРЅРєР°",
+                        value: vm.flashPassing ? "СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚" : "РЅРёР¶Рµ РЅРѕСЂРјР°С‚РёРІР°")
                     .foregroundColor(vm.flashPassing ? .green : .red)
             }
         }
     }
 
-    // MARK: - Базовые UI-компоненты
+    // MARK: - Р‘Р°Р·РѕРІС‹Рµ UI-РєРѕРјРїРѕРЅРµРЅС‚С‹
 
     struct SectionCard<Content: View>: View {
         let content: Content
@@ -246,6 +246,13 @@ struct CalculatorsView: View {
         let label: String
         @Binding var value: String
         let suffix: String?
+
+        init(_ label: String, value: Binding<String>, suffix: String? = nil) {
+            self.label = label
+            self._value = value
+            self.suffix = suffix
+        }
+
         var body: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label).font(.caption).foregroundColor(.secondary)
@@ -289,69 +296,8 @@ struct CalculatorsView: View {
         }
     }
 
+
     struct HairLine: View {
         var body: some View { Divider().padding(.vertical, 6) }
-    }
-}
-
-// MARK: - Заглушки остальных экранов (реализуются на следующих этапах)
-
-struct DiagnosticsView: View {
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "microscope")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue.opacity(0.5))
-                Text("Диагностика").font(.title2).fontWeight(.bold)
-                Text("ХАРГ-диагностика и нормы ГОСТ / РД")
-                    .font(.subheadline).foregroundColor(.secondary)
-                Text("Экран реализуется на этапе 2")
-                    .font(.footnote).foregroundColor(.tertiary)
-            }
-            .padding()
-            .navigationTitle("Диагностика")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-struct EquipmentView: View {
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "cpu")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue.opacity(0.5))
-                Text("Установки").font(.title2).fontWeight(.bold)
-                Text("Каталог установок ОИЛТЕХКЛИН и чек-лист приемки")
-                    .font(.subheadline).foregroundColor(.secondary)
-                Text("Экран реализуется на этапе 3")
-                    .font(.footnote).foregroundColor(.tertiary)
-            }
-            .padding()
-            .navigationTitle("Установки")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-    }
-}
-
-struct JournalView: View {
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 60))
-                    .foregroundColor(.blue.opacity(0.5))
-                Text("Журнал").font(.title2).fontWeight(.bold)
-                Text("Полевой журнал замеров и протоколов")
-                    .font(.subheadline).foregroundColor(.secondary)
-                Text("Экран реализуется на этапе 4 (SwiftData)")
-                    .font(.footnote).foregroundColor(.tertiary)
-            }
-            .padding()
-            .navigationTitle("Журнал")
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 }

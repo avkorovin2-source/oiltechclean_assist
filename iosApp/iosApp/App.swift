@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct OilTechApp: App {
@@ -6,5 +7,6 @@ struct OilTechApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(SwiftDataProvider.shared.container)
     }
 }

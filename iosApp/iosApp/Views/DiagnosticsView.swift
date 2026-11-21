@@ -59,7 +59,7 @@ struct DiagnosticsView: View {
     }
 
     struct DiagnosisResultCard: View {
-        let diagnosis: HargDiagnostics.HargResult
+        let diagnosis: HargDiagnosis
 
         var body: some View {
             let severity = diagnosis.severity.uppercased()
@@ -200,6 +200,13 @@ struct DiagnosticsView: View {
         let label: String
         @Binding var value: String
         let suffix: String?
+
+        init(_ label: String, value: Binding<String>, suffix: String? = nil) {
+            self.label = label
+            self._value = value
+            self.suffix = suffix
+        }
+
         var body: some View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label).font(.caption).foregroundColor(.secondary)

@@ -168,4 +168,15 @@ object OilAcceptanceChecklist {
 
     /** Допущено к заливке только при отметке всех критичных пунктов. */
     fun isApproved(checkedIds: Set<String>): Boolean = criticalIds.all { it in checkedIds }
+
+    // MARK: Swift-дружественные перегрузки (Kotlin `Set` неудобен при экспорте в Swift)
+
+    /** Аналог [isApproved] для списка идентификаторов (используется из iOS). */
+    fun isApprovedList(checkedIds: List<String>): Boolean = isApproved(checkedIds.toSet())
+
+    /** Количество неотмеченных критичных пунктов. */
+    fun missingCriticalCount(checkedIds: List<String>): Int {
+        val checked = checkedIds.toSet()
+        return criticalIds.count { it !in checked }
+    }
 }

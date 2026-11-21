@@ -61,3 +61,14 @@ data class AcceptanceCheckGroup(
     val title: String,
     val items: List<AcceptanceCheckItem>
 )
+
+/**
+ * Пара «неисправность — решение» в Swift-дружественном виде.
+ *
+ * Kotlin `Pair` экспортируется в Swift как `KotlinPair` без именованных полей,
+ * поэтому для iOS-клиента используется отдельный data class.
+ */
+data class TroubleshootingRow(
+    val problem: String,
+    val solution: String
+)

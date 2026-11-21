@@ -151,17 +151,6 @@ final class PDFReportGenerator {
                 line = String(word)
             } else {
                 line = candidate
-
-// MARK: - Утилита измерения текста
-
-private extension String {
-    func width(withConstrainedHeight height: CGFloat, font: UIFont) -> CGFloat {
-        let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
-        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin,
-                                            attributes: [.font: font], context: nil)
-        return ceil(boundingBox.width)
-    }
-}
             }
         }
         if !line.isEmpty {
@@ -183,5 +172,16 @@ private extension String {
     private static func formatOptional(_ value: Double?) -> String {
         guard let value = value else { return "—" }
         return formatNumber(value)
+    }
+}
+
+// MARK: - Утилита измерения текста
+
+private extension String {
+    func width(withConstrainedHeight height: CGFloat, font: UIFont) -> CGFloat {
+        let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
+        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin,
+                                            attributes: [.font: font], context: nil)
+        return ceil(boundingBox.width)
     }
 }

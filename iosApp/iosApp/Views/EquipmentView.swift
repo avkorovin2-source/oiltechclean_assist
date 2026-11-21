@@ -8,9 +8,14 @@ struct EquipmentView: View {
         NavigationStack {
             Group {
                 if vm.showAcceptance {
-                    AcceptanceCheckView()
+                    AcceptanceCheckView(onBack: { vm.showAcceptance = false })
                 } else if let unit = vm.selectedUnit {
-                    EquipmentDetailsView(unit: unit, onBack: { vm.selectedUnit = nil })
+                    EquipmentDetailsView(
+                        unit: unit,
+                        summary: vm.summary(for: unit),
+                        troubleshooting: vm.troubleshooting(for: unit),
+                        onBack: { vm.selectedUnit = nil }
+                    )
                 } else {
                     EquipmentListView(vm: vm)
                 }
@@ -38,8 +43,8 @@ struct EquipmentView: View {
                         .frame(maxWidth: .infinity)
 
                         HStack(spacing: 10) {
-                            ResultTile(label: "Пунктов", value: "\(OilAcceptanceChecklist.totalItems)", unit: nil)
-                            ResultTile(label: "Критичных", value: "\(OilAcceptanceChecklist.criticalItems)", unit: nil)
+                            ResultTile(label: "Пунктов", value: "\(OilAcceptanceChecklist.shared.totalItems)", unit: nil)
+                            ResultTile(label: "Критичных", value: "\(OilAcceptanceChecklist.shared.criticalItems)", unit: nil)
                         }
 
                         HairLine()
@@ -77,7 +82,7 @@ struct EquipmentView: View {
                                         StatusBadge(text: "\(unit.heaterPowerKw) кВт", color: .purple)
                                     }
 
-                                    Text(unit.description)
+                                    Text(vm.summary(for: unit))
                                         .font(.body)
                                         .foregroundColor(.secondary)
                                 }
@@ -95,6 +100,8 @@ struct EquipmentView: View {
 
     struct EquipmentDetailsView: View {
         let unit: EquipmentUnit
+        let summary: String
+        let troubleshooting: [TroubleshootingRow]
         let onBack: () -> Void
 
         var body: some View {
@@ -117,7 +124,7 @@ struct EquipmentView: View {
                             .font(.title2)
                             .fontWeight(.bold)
                         StatusBadge(text: unit.series, color: .purple)
-                        Text(unit.description)
+                        Text(summary)
                             .font(.body)
                             .foregroundColor(.secondary)
 
@@ -142,13 +149,13 @@ struct EquipmentView: View {
                         SectionHeader(title: "Аварийный помощник",
                                       subtitle: "Типовые неисправности и решения")
 
-                        ForEach(Array(unit.troubleshooting.enumerated()), id: \.offset) { index, item in
+                        ForEach(Array(troubleshooting.enumerated()), id: \.offset) { index, item in
                             if index > 0 { HairLine() }
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(item.0)
+                                Text(item.problem)
                                     .font(.body)
                                     .fontWeight(.bold)
-                                Text(item.1)
+                                Text(item.solution)
                                     .font(.body)
                                     .foregroundColor(.secondary)
                             }
@@ -161,6 +168,7 @@ struct EquipmentView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+}
 
 // MARK: - Базовые UI-компоненты
 

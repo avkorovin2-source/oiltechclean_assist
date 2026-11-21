@@ -3,29 +3,45 @@ import SwiftData
 import Shared
 
 @MainActor
-class AcceptanceCheckViewModel: ObservableObject {
+final class AcceptanceCheckViewModel: ObservableObject {
     @Published var objectName = ""
     @Published var checkedIds: Set<String> = []
     @Published var history: [AcceptanceCheck] = []
 
-    private let context: ModelContext
-    private let checklist = OilAcceptanceChecklist
+    private var context: ModelContext?
+
+    /// Kotlin-`object` экспортируется в Swift как класс с синглтоном `shared`.
+    private var checklist: OilAcceptanceChecklist { OilAcceptanceChecklist.shared }
 
     var approved: Bool {
-        checklist.isApproved(checkedIds: checkedIds)
+        checklist.isApprovedList(checkedIds: Array(checkedIds))
     }
-    var criticalTotal: Int { checklist.criticalItems }
-    var missingCritical: Int { checklist.criticalIds.count { $0 !in checkedIds } }
-    var canSave: Bool { !objectName.trimmingCharacters(in: .whitespaces).isEmpty && !checkedIds.isEmpty }
 
-    init(context: ModelContext) {
+    var criticalTotal: Int { Int(checklist.criticalItems) }
+
+    var missingCritical: Int {
+        Int(checklist.missingCriticalCount(checkedIds: Array(checkedIds)))
+    }
+
+    var canSave: Bool {
+        !objectName.trimmingCharacters(in: .whitespaces).isEmpty && !checkedIds.isEmpty
+    }
+
+    func attach(_ context: ModelContext) {
+        guard self.context == nil else { return }
         self.context = context
         loadHistory()
     }
 
     func loadHistory() {
+        guard let context = context else {
+            history = []
+            return
+        }
         do {
-            let descriptor = FetchDescriptor<AcceptanceCheck>(sortBy: [SortDescriptor(\AcceptanceCheck.checkedAt, order: .reverse)])
+            let descriptor = FetchDescriptor<AcceptanceCheck>(
+                sortBy: [SortDescriptor(\AcceptanceCheck.checkedAt, order: .reverse)]
+            )
             history = try context.fetch(descriptor)
         } catch {
             history = []
@@ -47,7 +63,7 @@ class AcceptanceCheckViewModel: ObservableObject {
 
     func saveCheck() {
         let name = objectName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty, !checkedIds.isEmpty else { return }
+        guard let context = context, !name.isEmpty, !checkedIds.isEmpty else { return }
 
         let entity = AcceptanceCheck(
             objectName: name,
@@ -66,6 +82,7 @@ class AcceptanceCheckViewModel: ObservableObject {
     }
 
     func deleteCheck(_ check: AcceptanceCheck) {
+        guard let context = context else { return }
         context.delete(check)
         do {
             try context.save()

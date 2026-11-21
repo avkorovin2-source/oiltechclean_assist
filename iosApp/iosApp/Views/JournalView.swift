@@ -1,17 +1,11 @@
-﻿import SwiftUI
+import SwiftUI
 import SwiftData
-import Shared
 
 struct JournalView: View {
-    @Environment(\\.modelContext) private var context
-    @StateObject private var vm: JournalViewModel
+    @Environment(\.modelContext) private var context
+    @StateObject private var vm = JournalViewModel()
     @State private var showingAddRecord = false
     @State private var exportRecord: JournalRecord?
-    @State private var showingShareSheet = false
-
-    init() {
-        _vm = StateObject(wrappedValue: JournalViewModel(context: ModelContext(try! ModelContainer(for: JournalRecord.self, AcceptanceCheck.self))))
-    }
 
     var body: some View {
         NavigationStack {
@@ -19,20 +13,21 @@ struct JournalView: View {
                 if vm.records.isEmpty {
                     EmptyJournalView()
                 } else {
-                    JournalListView(vm: vm)
+                    JournalListView(vm: vm, exportRecord: $exportRecord)
                 }
             }
-            .navigationTitle("урнал")
+            .navigationTitle("Журнал")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("обавить") { showingAddRecord = true }
+                    Button("Добавить") { showingAddRecord = true }
                 }
             }
-            .sheet(isPresented: ) {
-                AddJournalRecordView(vm: vm)
+            .task { vm.attach(context) }
+            .sheet(isPresented: $showingAddRecord) {
+                AddJournalRecordView(onSaved: { vm.loadRecords() })
             }
-            .sheet(item: ) { record in
+            .sheet(item: $exportRecord) { record in
                 if let url = try? PDFReportGenerator.generateReport(record: record) {
                     PDFShareView(fileURL: url) {
                         exportRecord = nil
@@ -42,28 +37,33 @@ struct JournalView: View {
         }
     }
 
+    // MARK: - Пустое состояние
+
     struct EmptyJournalView: View {
         var body: some View {
             ContentUnavailableView(
-                "аписей нет",
+                "Записей нет",
                 systemImage: "doc.text",
-                description: Text("обавьте первый замер через кнопку «обавить»")
+                description: Text("Добавьте первый замер через кнопку «Добавить»")
             )
         }
     }
 
+    // MARK: - Список
+
     struct JournalListView: View {
         @ObservedObject var vm: JournalViewModel
+        @Binding var exportRecord: JournalRecord?
 
         var body: some View {
             List {
                 ForEach(vm.records) { record in
                     JournalRow(record: record)
                         .swipeActions {
-                            Button("далить", role: .destructive) {
+                            Button("Удалить", role: .destructive) {
                                 vm.deleteRecord(record)
                             }
-                            Button("кспорт PDF") {
+                            Button("Экспорт PDF") {
                                 exportRecord = record
                             }
                             .tint(.blue)
@@ -90,8 +90,14 @@ struct JournalView: View {
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 HStack(spacing: 16) {
-                    SpecChip(label: "лаж. /С", value: "\(record.moistureBefore) / \(record.moistureAfter) ppm")
-                    SpecChip(label: "робив. /С", value: "\(record.breakdownBefore) / \(record.breakdownAfter) к")
+                    SpecChip(
+                        label: "Влаж. Д/С",
+                        value: "\(record.moistureBefore) / \(record.moistureAfter) ppm"
+                    )
+                    SpecChip(
+                        label: "Пробив. Д/С",
+                        value: "\(record.breakdownBefore) / \(record.breakdownAfter) кВ"
+                    )
                 }
                 if let conclusion = record.conclusion, !conclusion.isEmpty {
                     Text(conclusion)
