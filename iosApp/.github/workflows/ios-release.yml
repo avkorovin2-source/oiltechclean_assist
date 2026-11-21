@@ -39,17 +39,39 @@ jobs:
 
       - name: Package unsigned .app into .ipa
         run: |
+          set -euo pipefail
           cd iosApp
-          APP_PATH="./build/Build/Products/Debug-iphoneos/iosApp.app"
-          rm -rf ./build/ipa-tmp
+
+          PRODUCTS_DIR="./build/Build/Products/Debug-iphoneos"
+          APP_PATH="$(find "${PRODUCTS_DIR}" -maxdepth 1 -type d -name "*.app" -print -quit)"
+          if [ -z "${APP_PATH}" ]; then
+            echo "::error::Не найден .app в ${PRODUCTS_DIR}"
+            ls -la "${PRODUCTS_DIR}" || true
+            exit 1
+          fi
+          echo "App bundle: ${APP_PATH}"
+
+          rm -rf ./build/ipa-tmp oiltechunsigned.ipa
           mkdir -p ./build/ipa-tmp/Payload
           cp -R "${APP_PATH}" "./build/ipa-tmp/Payload/"
-          cd ./build/ipa-tmp
-          zip -r ../oiltechunsigned.ipa .
-          cd ../..
+
+          # Архив создаётся относительно iosApp/, т.е. ровно там, откуда его забирает
+          # actions/upload-artifact (см. path ниже). Раньше zip писал в build/.
+          (cd ./build/ipa-tmp && zip -qry ../../oiltechunsigned.ipa Payload)
+
+          ls -lh oiltechunsigned.ipa
+          test -f oiltechunsigned.ipa
+
+      - name: List build outputs
+        run: |
+          echo "Searching for IPA files..."
+          find . -type f -name "*.ipa" -print
+          echo "Searching for .app bundles..."
+          find . -type d -name "*.app" -print
 
       - name: Upload unsigned .ipa artifact
         uses: actions/upload-artifact@v4
         with:
           name: oiltech-ipa-sideloadly
           path: iosApp/oiltechunsigned.ipa
+          if-no-files-found: error
