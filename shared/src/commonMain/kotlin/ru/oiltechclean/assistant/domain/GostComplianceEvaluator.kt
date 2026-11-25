@@ -25,6 +25,7 @@ object GostComplianceEvaluator {
 
     data class ComplianceReport(
         val voltageClass: String,
+        val category: String,
         val checks: List<CheckResult>
     ) {
         val failed: List<CheckResult> get() = checks.filter { it.verdict == Verdict.FAIL }
@@ -94,7 +95,11 @@ object GostComplianceEvaluator {
                 isUpperBound = true
             )
         )
-        return ComplianceReport(voltageClass = standard.voltageClass, checks = checks)
+        return ComplianceReport(
+            voltageClass = standard.voltageClass,
+            category = standard.category,
+            checks = checks
+        )
     }
 
     /**

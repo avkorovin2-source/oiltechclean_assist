@@ -50,6 +50,18 @@ struct DiagnosticsView: View {
                 BrandNumberField("Ацетилен (C₂H₂)", value: $vm.c2h2, suffix: "ppm")
                 BrandNumberField("Этилен (C₂H₄)", value: $vm.c2h4, suffix: "ppm")
                 BrandNumberField("Этан (C₂H₆)", value: $vm.c2h6, suffix: "ppm")
+                BrandNumberField("Окись углерода (CO)", value: $vm.co, suffix: "ppm")
+                BrandNumberField("Диоксид углерода (CO₂)", value: $vm.co2, suffix: "ppm")
+
+                Picker("Класс напряжения", selection: $vm.voltageClassSelection) {
+                    Text("Класс не указан").tag("Класс не указан")
+                    Text("До 35 кВ").tag("До 35 кВ")
+                    Text("110–150 кВ").tag("110–150 кВ")
+                    Text("220–500 кВ").tag("220–500 кВ")
+                    Text("750 кВ").tag("750 кВ")
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
 
                 BrandHairLine()
 
@@ -129,17 +141,35 @@ struct DiagnosticsView: View {
 
         var body: some View {
             BrandCard {
-                BrandSectionHeader(title: "Предельные значения показателей",
-                              subtitle: "РД 34.45-51.300-97")
+                BrandSectionHeader(title: "Масло в эксплуатации",
+                              subtitle: "Предельные значения по РД 34.45-51.300-97")
 
-                Text("Допустимые значения качества масла по классам напряжения.")
+                Text("Нормы для трансформаторного масла, находящегося в работе на оборудовании.")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                ForEach(vm.gostStandards, id: \.voltageClass) { row in
+                ForEach(vm.gostStandardsInOperation, id: \.voltageClass) { row in
                     GostRow(row: row)
                 }
             }
+
+            BrandCard {
+                BrandSectionHeader(title: "Свежее масло при приёмке",
+                              subtitle: "Предельные значения для входного контроля (ГОСТ 982-80)")
+
+                Text("Нормы для свежего масла перед заливкой в оборудование. Не смешивать с нормами эксплуатации.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                ForEach(vm.gostStandardsForFreshOil, id: \.voltageClass) { row in
+                    GostRow(row: row)
+                }
+            }
+
+            Text("Важно: это разные категории масла. При одних и тех же показателях протокол (масло в эксплуатации) и чек-лист приёмки (свежее масло) могут выносить разный вердикт — сверяйтесь со строкой соответствующей категории.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
         }
     }
 
@@ -153,7 +183,7 @@ struct DiagnosticsView: View {
                         .font(.headline)
                         .fontWeight(.bold)
                     Spacer()
-                    Text("класс")
+                    Text(row.category)
                         .font(.caption2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)

@@ -1,6 +1,8 @@
 package ru.oiltechclean.assistant.data
 
 import ru.oiltechclean.assistant.model.EquipmentUnit
+import ru.oiltechclean.assistant.model.GOST_CATEGORY_FRESH_OIL
+import ru.oiltechclean.assistant.model.GOST_CATEGORY_OPERATION
 import ru.oiltechclean.assistant.model.GostStandardRow
 import ru.oiltechclean.assistant.model.TroubleshootingRow
 
@@ -87,13 +89,35 @@ object OfflineCatalogRepository {
         )
     )
 
+    /**
+     * Предельные значения качества масла.
+     * Строки с [GOST_CATEGORY_OPERATION] — нормы для масла в эксплуатации по РД 34.45-51.300-97.
+     * Строки с [GOST_CATEGORY_FRESH_OIL] — нормы для свежего масла при приёмке перед заливкой
+     * (ГОСТ 982-80 / типовая практика входного контроля).
+     *
+     * Предупреждение: это разные категории масла. При одних и тех же цифрах протокол
+     * (масло в эксплуатации) и чек-лист приёмки (свежее масло) могут выносить разный вердикт —
+     * сверяться нужно со строкой соответствующей категории.
+     */
     val gostStandards = listOf(
-        GostStandardRow("До 35 кВ (включительно)", 35.0, 25.0, 2.0, 0.10, 15.0),
-        GostStandardRow("110 – 150 кВ", 55.0, 15.0, 1.0, 0.05, 10.0),
-        GostStandardRow("220 кВ", 60.0, 10.0, 0.5, 0.05, 8.0),
-        GostStandardRow("330 – 500 кВ", 65.0, 10.0, 0.5, 0.03, 5.0),
-        GostStandardRow("750 кВ", 70.0, 8.0, 0.3, 0.02, 3.0)
+        // --- Масло в эксплуатации (РД 34.45-51.300-97) ---
+        GostStandardRow("До 35 кВ (включительно)", 35.0, 25.0, 2.0, 0.10, 15.0, GOST_CATEGORY_OPERATION),
+        GostStandardRow("110 – 150 кВ", 55.0, 15.0, 1.0, 0.05, 10.0, GOST_CATEGORY_OPERATION),
+        GostStandardRow("220 кВ", 60.0, 10.0, 0.5, 0.05, 8.0, GOST_CATEGORY_OPERATION),
+        GostStandardRow("330 – 500 кВ", 65.0, 10.0, 0.5, 0.03, 5.0, GOST_CATEGORY_OPERATION),
+        GostStandardRow("750 кВ", 70.0, 8.0, 0.3, 0.02, 3.0, GOST_CATEGORY_OPERATION),
+        // --- Свежее масло при приёмке перед заливкой (ГОСТ 982-80 / приёмка) ---
+        // Газосодержание для свежего масла регламента чек-листа не задаёт;
+        // в колонке оставлен ориентир — предел того же класса напряжения из норм эксплуатации.
+        GostStandardRow("Свежее масло, до 35 кВ", 35.0, 25.0, 2.0, 0.02, 2.5, GOST_CATEGORY_FRESH_OIL),
+        GostStandardRow("Свежее масло, 110 кВ и выше", 55.0, 10.0, 1.0, 0.02, 2.5, GOST_CATEGORY_FRESH_OIL)
     )
+
+    val gostStandardsInOperation: List<GostStandardRow>
+        get() = gostStandards.filter { it.category == GOST_CATEGORY_OPERATION }
+
+    val gostStandardsForFreshOil: List<GostStandardRow>
+        get() = gostStandards.filter { it.category == GOST_CATEGORY_FRESH_OIL }
 
     /**
      * Swift-дружественное представление [EquipmentUnit.troubleshooting]:

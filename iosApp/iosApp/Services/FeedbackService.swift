@@ -3,13 +3,14 @@ import Foundation
 /// Настройки приёмника обратной связи.
 ///
 /// Приложение ничего не знает о почте и не содержит токенов: форма просто
-/// отправляет HTTPS POST с JSON на один адрес. Подойдёт любой приёмник,
-/// принимающий JSON: Formspree, Getform, Cloudflare Worker, Google Apps Script.
+/// отправляет HTTPS POST с JSON на адрес `feedback_api.php` сайта
+/// ОИЛТЕХКЛИН. Отзывы складываются в `data/feedback.json` и видны
+/// в админ-панели сайта на вкладке «Отзывы из приложения».
 ///
-/// Как подключить: зарегистрировать форму на https://formspree.io, скопировать
-/// адрес вида `https://formspree.io/f/abcdwxyz` и вставить его ниже.
+/// Приёмник — обычный HTTPS POST с JSON, поэтому при необходимости адрес
+/// можно заменить на Formspree, Getform, Cloudflare Worker и т. п.
 enum FeedbackConfig {
-    static let endpoint = "https://formspree.io/f/REPLACE_WITH_FORM_ID"
+    static let endpoint = "https://oiltechclean.ru/feedback_api.php"
 
     /// `true`, когда адрес приёмника задан (а не оставлен шаблоном).
     static var isConfigured: Bool {

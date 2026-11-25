@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.MenuBook
@@ -33,8 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
 import ru.oiltechclean.assistant.data.OfflineCatalogRepository
 import ru.oiltechclean.assistant.domain.HargDiagnostics
+import ru.oiltechclean.assistant.model.GostStandardRow
+import ru.oiltechclean.assistant.ui.components.DropdownField
 import ru.oiltechclean.assistant.ui.components.HairLine
 import ru.oiltechclean.assistant.ui.components.NumberField
 import ru.oiltechclean.assistant.ui.components.SectionCard
@@ -83,14 +87,29 @@ private fun HargAnalyzerBlock() {
     var c2h2 by remember { mutableStateOf("0.5") }
     var c2h4 by remember { mutableStateOf("20") }
     var c2h6 by remember { mutableStateOf("15") }
+    var co by remember { mutableStateOf("") }
+    var co2 by remember { mutableStateOf("") }
 
-    val diagnosis = remember(h2, ch4, c2h2, c2h4, c2h6) {
+    val voltageClassOptions = listOf("Класс не указан", "До 35 кВ", "110–150 кВ", "220–500 кВ", "750 кВ")
+    var voltageClassSelection by remember { mutableStateOf(voltageClassOptions.first()) }
+    val voltageClassKv = when (voltageClassSelection) {
+        "До 35 кВ" -> 35
+        "110–150 кВ" -> 150
+        "220–500 кВ" -> 500
+        "750 кВ" -> 750
+        else -> 0
+    }
+
+    val diagnosis = remember(h2, ch4, c2h2, c2h4, c2h6, co, co2, voltageClassKv) {
         HargDiagnostics.analyzeDissolvedGases(
             h2 = h2.toDoubleOrNull() ?: 0.0,
             ch4 = ch4.toDoubleOrNull() ?: 0.0,
             c2h2 = c2h2.toDoubleOrNull() ?: 0.0,
             c2h4 = c2h4.toDoubleOrNull() ?: 0.0,
-            c2h6 = c2h6.toDoubleOrNull() ?: 0.0
+            c2h6 = c2h6.toDoubleOrNull() ?: 0.0,
+            co = co.toDoubleOrNull() ?: 0.0,
+            co2 = co2.toDoubleOrNull() ?: 0.0,
+            voltageClassKv = voltageClassKv
         )
     }
 
@@ -105,6 +124,14 @@ private fun HargAnalyzerBlock() {
         NumberField("Ацетилен (C₂H₂)", c2h2, { c2h2 = it }, suffix = "ppm")
         NumberField("Этилен (C₂H₄)", c2h4, { c2h4 = it }, suffix = "ppm")
         NumberField("Этан (C₂H₆)", c2h6, { c2h6 = it }, suffix = "ppm")
+        NumberField("Окись углерода (CO)", co, { co = it }, suffix = "ppm")
+        NumberField("Диоксид углерода (CO₂)", co2, { co2 = it }, suffix = "ppm")
+        DropdownField(
+            label = "Класс напряжения оборудования",
+            value = voltageClassSelection,
+            options = voltageClassOptions,
+            onSelect = { voltageClassSelection = it }
+        )
     }
 
     DiagnosisResultCard(diagnosis)
@@ -159,6 +186,25 @@ private fun DiagnosisResultCard(diagnosis: HargDiagnostics.HargResult) {
             color = Slate
         )
 
+        if (diagnosis.duvalZone != "—") {
+            SpecRow(
+                label = "Треугольник Дюваля 1",
+                value = "${diagnosis.duvalZone} — ${diagnosis.duvalInterpretation}"
+            )
+        }
+        if (diagnosis.boundaryExceedances.isNotEmpty()) {
+            SpecRow(
+                label = "Превышения границ (Табл. 2 РД)",
+                value = diagnosis.boundaryExceedances.joinToString(", ")
+            )
+        }
+        if (diagnosis.paperInsulationSuspected) {
+            SpecRow(
+                label = "Твёрдая (бумажная) изоляция",
+                value = "Подозрение на поражение целлюлозы (CO₂/CO ≥ 13)"
+            )
+        }
+
         HairLine()
 
         Column(
@@ -187,40 +233,69 @@ private fun DiagnosisResultCard(diagnosis: HargDiagnostics.HargResult) {
 
 @Composable
 private fun GostReferenceBlock() {
+    val operationRows = OfflineCatalogRepository.gostStandardsInOperation
+    val freshRows = OfflineCatalogRepository.gostStandardsForFreshOil
+
     SectionCard {
         SectionHeader(
-            title = "Предельные значения показателей",
-            subtitle = "РД 34.45-51.300-97",
+            title = "Масло в эксплуатации",
+            subtitle = "Предельные значения по РД 34.45-51.300-97",
             icon = Icons.Outlined.MenuBook
         )
         Text(
-            text = "Допустимые значения качества масла по классам напряжения.",
+            text = "Нормы для трансформаторного масла, находящегося в работе на оборудовании.",
             style = MaterialTheme.typography.bodySmall,
             color = Slate
         )
     }
+    operationRows.forEach { row -> normRow(row) }
 
-    OfflineCatalogRepository.gostStandards.forEach { row ->
-        SectionCard {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = row.voltageClass,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                StatusBadge(text = "класс", color = BrandIndigo)
-            }
-            HairLine()
-            SpecRow("Пробивное напряжение, не менее", "${row.breakdownVoltageKvMin} кВ")
-            SpecRow("Влагосодержание, не более", "${row.moisturePpmMax} ppm")
-            SpecRow("Газосодержание, не более", "${row.gasContentPercentMax} %")
-            SpecRow("Кислотное число, не более", "${row.acidNumberMax} мг КОН/г")
-            SpecRow("tg δ при 90 °C, не более", "${row.tanDelta90CMax} %")
+    SectionCard {
+        SectionHeader(
+            title = "Свежее масло при приёмке",
+            subtitle = "Предельные значения для входного контроля (ГОСТ 982-80)",
+            icon = Icons.AutoMirrored.Outlined.FactCheck
+        )
+        Text(
+            text = "Нормы для свежего масла перед заливкой в оборудование. Не смешивать с нормами эксплуатации.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Slate
+        )
+    }
+    freshRows.forEach { row -> normRow(row) }
+
+    SectionCard {
+        Text(
+            text = "Важно: это разные категории масла. При одних и тех же показателях протокол " +
+                "(масло в эксплуатации) и чек-лист приёмки (свежее масло) могут выносить разный вердикт — " +
+                "сверяйтесь со строкой соответствующей категории.",
+            style = MaterialTheme.typography.bodySmall,
+            color = Slate
+        )
+    }
+}
+
+@Composable
+private fun normRow(row: GostStandardRow) {
+    SectionCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = row.voltageClass,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            StatusBadge(text = row.category, color = BrandIndigo)
         }
+        HairLine()
+        SpecRow("Пробивное напряжение, не менее", "${row.breakdownVoltageKvMin} кВ")
+        SpecRow("Влагосодержание, не более", "${row.moisturePpmMax} ppm")
+        SpecRow("Газосодержание, не более", "${row.gasContentPercentMax} %")
+        SpecRow("Кислотное число, не более", "${row.acidNumberMax} мг КОН/г")
+        SpecRow("tg δ при 90 °C, не более", "${row.tanDelta90CMax} %")
     }
 }

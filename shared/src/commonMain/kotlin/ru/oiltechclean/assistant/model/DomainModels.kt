@@ -19,8 +19,15 @@ data class GostStandardRow(
     val moisturePpmMax: Double,
     val gasContentPercentMax: Double,
     val acidNumberMax: Double,
-    val tanDelta90CMax: Double
+    val tanDelta90CMax: Double,
+    /** Категория масла, для которой действуют пределы строки. */
+    val category: String
 )
+
+/** Масло в работе на оборудовании — пределы РД 34.45-51.300-97. */
+const val GOST_CATEGORY_OPERATION = "В эксплуатации"
+/** Свежее масло при приёмке перед заливкой — пределы ГОСТ 982-80 / типовой практики входного контроля. */
+const val GOST_CATEGORY_FRESH_OIL = "Перед заливкой / свежее масло"
 
 data class FieldLogEntry(
     val id: Long,

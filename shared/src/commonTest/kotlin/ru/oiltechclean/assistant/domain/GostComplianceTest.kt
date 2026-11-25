@@ -1,6 +1,7 @@
 package ru.oiltechclean.assistant.domain
 
 import ru.oiltechclean.assistant.data.OfflineCatalogRepository
+import ru.oiltechclean.assistant.model.GOST_CATEGORY_FRESH_OIL
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -97,5 +98,28 @@ class GostComplianceTest {
         assertEquals(1, report.failedLines.size)
         assertEquals("Пройдено 0 из 1", report.summaryText)
         assertTrue(report.failedLines.first().contains("Влагосодержание"))
+    }
+
+    @Test
+    fun freshOilStandardAppliesStricterLimitsAndReportsCategory() {
+        val freshStandard = OfflineCatalogRepository.gostStandards.first {
+            it.voltageClass == "Свежее масло, 110 кВ и выше"
+        }
+        assertEquals(GOST_CATEGORY_FRESH_OIL, freshStandard.category)
+
+        // Влагосодержание 12 ppm допустимо для масла в работе (110–150 кВ: до 15 ppm),
+        // но недопустимо для свежего масла при приёмке (до 10 ppm).
+        val report = GostComplianceEvaluator.evaluate(
+            standard = freshStandard,
+            breakdownVoltageKv = null,
+            moisturePpm = 12.0,
+            gasContentPercent = null,
+            acidNumber = null,
+            tanDelta90C = null
+        )
+        assertFalse(report.isCompliant)
+        assertEquals(1, report.failed.size)
+        assertEquals("Влагосодержание", report.failed.first().parameter)
+        assertEquals(GOST_CATEGORY_FRESH_OIL, report.category)
     }
 }
